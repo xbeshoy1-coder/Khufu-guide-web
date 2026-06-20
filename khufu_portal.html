@@ -273,9 +273,23 @@
     <h1>Khufu Guide</h1>
     <p>Smart Tour Guide Platform for Egypt</p>
   </div>
-  <div class="landing-btns">
-    <button class="btn-primary" onclick="showScreen('register')">🚀 Start Free Trial</button>
-    <div class="landing-divider">— already have an account? —</div>
+
+  <!-- Shown when already logged in -->
+  <div id="logged-in-panel" style="display:none;width:100%;max-width:320px;text-align:center">
+    <div style="background:var(--surface);border:1px solid var(--gold-dark);border-radius:14px;padding:20px;margin-bottom:14px">
+      <div style="font-size:2rem;margin-bottom:8px">𓂀</div>
+      <div style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Logged in as</div>
+      <div id="landing-company-name" style="color:var(--gold);font-size:1.1rem;font-weight:700;margin-bottom:2px">Company</div>
+      <div id="landing-user-email" style="color:var(--muted);font-size:.8rem"></div>
+    </div>
+    <button class="btn-primary" style="width:100%;margin-bottom:10px" onclick="goToDashboard()">Open My Dashboard</button>
+    <button class="btn-outline" style="width:100%" onclick="switchAccount()">Switch / Create New Account</button>
+  </div>
+
+  <!-- Shown when not logged in -->
+  <div id="logged-out-panel" class="landing-btns">
+    <button class="btn-primary" onclick="showScreen('register')">Start Free Trial</button>
+    <div class="landing-divider">already have an account?</div>
     <button class="btn-outline" onclick="showScreen('login')">Company Login</button>
   </div>
 </div>
@@ -553,22 +567,43 @@ let brandLogoBase64 = null;
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
-    await loadCompanyData();
-    showScreen('dashboard');
+    // Load data but stay on landing — show "continue" panel
+    const snap = await get(ref(db, `companies/${user.uid}`));
+    if (snap.exists()) {
+      companyData = snap.val();
+      // Show logged-in panel on landing instead of auto-redirecting
+      document.getElementById('logged-in-panel').style.display = 'block';
+      document.getElementById('logged-out-panel').style.display = 'none';
+      document.getElementById('landing-company-name').textContent = companyData.name || 'My Company';
+      document.getElementById('landing-user-email').textContent = user.email;
+    } else {
+      // New user with no data yet — go straight to dashboard
+      showScreen('dashboard');
+    }
   } else {
     currentUser = null;
+    companyData = {};
+    document.getElementById('logged-in-panel').style.display = 'none';
+    document.getElementById('logged-out-panel').style.display = 'flex';
     showScreen('landing');
   }
 });
+
+window.goToDashboard = () => {
+  renderDashboard();
+  showScreen('dashboard');
+};
+
+window.switchAccount = async () => {
+  await signOut(auth);
+  // auth state listener will reset the landing screen
+};
 
 async function loadCompanyData() {
   showLoading(true);
   try {
     const snap = await get(ref(db, `companies/${currentUser.uid}`));
-    if (snap.exists()) {
-      companyData = snap.val();
-      renderDashboard();
-    }
+    if (snap.exists()) companyData = snap.val();
   } catch(e) { console.error(e); }
   showLoading(false);
 }
