@@ -563,28 +563,37 @@ let companyData = {};
 let logoBase64 = null;
 let brandLogoBase64 = null;
 
-// Auth state
+// intentionalAuth = true when user clicks Login or Register button
+// This tells onAuthStateChanged to go to dashboard instead of landing panel
+let intentionalAuth = false;
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
-    // Load data but stay on landing — show "continue" panel
     const snap = await get(ref(db, `companies/${user.uid}`));
-    if (snap.exists()) {
-      companyData = snap.val();
-      // Show logged-in panel on landing instead of auto-redirecting
+    if (snap.exists()) companyData = snap.val();
+
+    if (intentionalAuth) {
+      // Came from login/register — go straight to dashboard
+      intentionalAuth = false;
+      showLoading(false);
+      renderDashboard();
+      showScreen('dashboard');
+    } else {
+      // Page reload with existing session — show landing "continue" panel
       document.getElementById('logged-in-panel').style.display = 'block';
       document.getElementById('logged-out-panel').style.display = 'none';
       document.getElementById('landing-company-name').textContent = companyData.name || 'My Company';
       document.getElementById('landing-user-email').textContent = user.email;
-    } else {
-      // New user with no data yet — go straight to dashboard
-      showScreen('dashboard');
+      showScreen('landing');
     }
   } else {
     currentUser = null;
     companyData = {};
+    intentionalAuth = false;
     document.getElementById('logged-in-panel').style.display = 'none';
     document.getElementById('logged-out-panel').style.display = 'flex';
+    showLoading(false);
     showScreen('landing');
   }
 });
@@ -595,8 +604,8 @@ window.goToDashboard = () => {
 };
 
 window.switchAccount = async () => {
+  showLoading(true);
   await signOut(auth);
-  // auth state listener will reset the landing screen
 };
 
 async function loadCompanyData() {
@@ -797,9 +806,19 @@ window.doLogin = async () => {
   if (!email || !pass) { errEl.textContent='Please fill all fields'; errEl.classList.add('show'); return; }
   showLoading(true);
   try {
+    intentionalAuth = true;
     await signInWithEmailAndPassword(auth, email, pass);
+    // onAuthStateChanged will handle redirect to dashboard
   } catch(e) {
-    errEl.textContent = 'Invalid email or password';
+    intentionalAuth = false;
+    const code = e.code || '';
+    let msg = '';
+    if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') msg = 'Incorrect email or password.';
+    else if (code === 'auth/invalid-email') msg = 'Invalid email address format.';
+    else if (code === 'auth/too-many-requests') msg = 'Too many attempts. Please wait and try again.';
+    else if (code === 'auth/network-request-failed') msg = 'Network error. Check your connection.';
+    else msg = 'Login failed: ' + (e.message || code);
+    errEl.textContent = msg;
     errEl.classList.add('show');
     showLoading(false);
   }
@@ -819,6 +838,7 @@ window.doRegister = async () => {
 
   showLoading(true);
   try {
+    intentionalAuth = true;
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     const now = Date.now();
     const companyRecord = {
@@ -830,6 +850,7 @@ window.doRegister = async () => {
     companyData = companyRecord;
     // Auth state listener will handle redirect to dashboard
   } catch(e) {
+    intentionalAuth = false;
     showLoading(false);
     const code = e.code || '';
     let msg = '';
