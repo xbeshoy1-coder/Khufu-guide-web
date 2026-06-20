@@ -554,22 +554,39 @@ onAuthStateChanged(auth, u => {
 signInAnonymously(auth).catch(console.error);
 
 // Load launch context (set by guide portal)
+// IMPORTANT: context is only valid for 30 minutes to prevent tourist
+// devices from inheriting a guide session from stale localStorage
 window.addEventListener('load', () => {
   try {
-    const ctx = JSON.parse(localStorage.getItem('khufu_launch_ctx') || '{}');
-    companyCtx = ctx;
-    if (ctx.companyName) document.getElementById('app-title').textContent = ctx.companyName;
-    if (ctx.schedule) schedule = ctx.schedule;
-    if (ctx.groupCode) roomCode = ctx.groupCode;
-    applyBranding(ctx.branding || {});
-    // If launched as guide with a groupCode, skip role screen and go straight in
-    if (ctx.role === 'guide' && ctx.groupCode) {
-      role = 'guide';
-      selectedLang = 'en';
-      authReadyPromise.then(() => initApp());
+    const raw = localStorage.getItem('khufu_launch_ctx');
+    if (raw) {
+      const ctx = JSON.parse(raw);
+      const AGE_LIMIT = 30 * 60 * 1000; // 30 minutes
+      const isRecent = ctx.launchedAt && (Date.now() - ctx.launchedAt) < AGE_LIMIT;
+
+      if (ctx.role === 'guide' && ctx.groupCode && isRecent) {
+        // Valid fresh guide launch — auto-enter as guide
+        companyCtx = ctx;
+        schedule = ctx.schedule || [];
+        roomCode = ctx.groupCode;
+        role = 'guide';
+        selectedLang = 'en';
+        if (ctx.companyName) document.getElementById('app-title').textContent = ctx.companyName;
+        applyBranding(ctx.branding || {});
+        // Clear after reading so the next person on this device gets the normal flow
+        localStorage.removeItem('khufu_launch_ctx');
+        authReadyPromise.then(() => initApp());
+        initWallpapers();
+        return; // skip normal splash screen
+      }
+      // Stale or tourist — clear it and show normal splash
+      localStorage.removeItem('khufu_launch_ctx');
     }
-  } catch(e) {}
+  } catch(e) {
+    localStorage.removeItem('khufu_launch_ctx');
+  }
   initWallpapers();
+  // Normal flow: show language selection screen
 });
 
 function applyBranding(b) {
