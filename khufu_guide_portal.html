@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khufu Guide — Guide Portal</title>
+<style>
+:root{--bg:#000;--gold:#C9A84C;--gold-light:#E8C97A;--gold-dark:#8B6914;--text:#EDE0B8;--muted:#7A6830;--surface:#0D0D00;--surface2:#1A1500;--border:#2A2000;--danger:#cc4444;--success:#4a9}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#111}::-webkit-scrollbar-thumb{background:var(--gold-dark);border-radius:3px}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+#scr-landing{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a1200 0%,#000 70%);text-align:center;padding:40px 20px}
+.logo-area{margin-bottom:36px}
+.ankh{font-size:58px;margin-bottom:12px}
+h1{font-size:2rem;color:var(--gold);letter-spacing:3px;text-transform:uppercase}
+.logo-area p{color:var(--muted);margin-top:6px;font-size:.88rem}
+.landing-btns{display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px}
+.btn{all:unset;display:block;text-align:center;padding:14px 28px;border-radius:50px;font-size:.9rem;font-weight:700;cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .2s}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(201,168,76,.4)}
+.btn-outline{border:1px solid var(--gold);color:var(--gold)}
+.btn-outline:hover{background:rgba(201,168,76,.1)}
+.divider{color:var(--muted);font-size:.78rem;text-align:center}
+.session-card{background:var(--surface);border:1px solid var(--gold-dark);border-radius:14px;padding:18px;margin-bottom:14px;width:100%;max-width:300px;text-align:center}
+.session-card .gname{color:var(--gold);font-size:1rem;font-weight:700}
+.session-card .gemail{color:var(--muted);font-size:.78rem;margin-top:2px}
+.session-card .cname{color:var(--muted);font-size:.72rem;margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
+
+/* Auth */
+#scr-login,#scr-register{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a1200 0%,#000 70%);padding:20px;flex-direction:column}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:34px 26px;width:100%;max-width:420px}
+.auth-card h2{color:var(--gold);font-size:1.4rem;margin-bottom:4px}
+.auth-card .sub{color:var(--muted);font-size:.82rem;margin-bottom:22px;line-height:1.5}
+.field{margin-bottom:14px}
+.field label{display:block;color:var(--muted);font-size:.72rem;margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:10px;font-size:.9rem;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--gold)}
+.invite-notice{background:rgba(201,168,76,.08);border:1px solid var(--gold-dark);border-radius:10px;padding:12px 14px;font-size:.82rem;color:var(--text);margin-bottom:16px;line-height:1.5;display:none}
+.invite-notice.show{display:block}
+.invite-notice .co{color:var(--gold);font-weight:700}
+.auth-link{text-align:center;margin-top:16px;color:var(--muted);font-size:.8rem}
+.auth-link span{color:var(--gold);cursor:pointer;text-decoration:underline}
+.back-btn{all:unset;color:var(--muted);cursor:pointer;font-size:.8rem;margin-bottom:16px;display:flex;align-items:center;gap:5px;align-self:flex-start}
+.back-btn:hover{color:var(--gold)}
+.err{color:var(--danger);font-size:.76rem;margin-top:5px;display:none}
+.err.show{display:block}
+
+/* Dashboard */
+#scr-dashboard{background:var(--bg)}
+.dash-header{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.dash-header .brand{display:flex;align-items:center;gap:10px}
+.ava{width:34px;height:34px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:14px;color:#000;font-weight:700;flex-shrink:0}
+.hdr-info h2{font-size:.9rem;color:var(--gold)}
+.hdr-info p{font-size:.7rem;color:var(--muted)}
+.icon-btn{all:unset;cursor:pointer;color:var(--muted);font-size:1.1rem;padding:6px;border-radius:8px}
+.icon-btn:hover{color:var(--gold)}
+.dash-tabs{display:flex;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);padding:0 12px}
+.dash-tabs::-webkit-scrollbar{height:0}
+.dash-tab{all:unset;padding:12px 16px;color:var(--muted);font-size:.8rem;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+.dash-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-body{display:none;padding:18px;max-width:800px;margin:0 auto}
+.tab-body.active{display:block}
+
+/* Groups */
+.section-hd{color:var(--gold);font-size:.88rem;font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.group-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:14px;overflow:hidden}
+.group-card-header{padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.group-code-badge{font-family:monospace;font-size:1.1rem;letter-spacing:3px;color:var(--gold);background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);padding:5px 12px;border-radius:8px;flex-shrink:0}
+.group-info{flex:1}
+.group-info .gname{font-size:.92rem;font-weight:600;color:var(--text)}
+.group-info .gmeta{font-size:.72rem;color:var(--muted);margin-top:2px}
+.live-badge{background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.3);padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;display:flex;align-items:center;gap:5px}
+.live-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:blink 1s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.offline-badge{background:rgba(122,104,48,.1);color:var(--muted);border:1px solid var(--border);padding:3px 10px;border-radius:20px;font-size:.68px;font-weight:700}
+.group-actions{padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.act-btn{all:unset;cursor:pointer;padding:8px 16px;border-radius:50px;font-size:.78rem;font-weight:700;transition:all .2s}
+.act-launch{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000}
+.act-launch:hover{opacity:.9}
+.act-outline{border:1px solid var(--border);color:var(--muted)}
+.act-outline:hover{border-color:var(--gold);color:var(--gold)}
+.act-danger{border:1px solid var(--danger);color:var(--danger)}
+.act-danger:hover{background:rgba(204,68,68,.1)}
+
+/* Schedule editor inside group */
+.schedule-editor{padding:14px 16px}
+.day-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.day-hd{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.day-hd span{color:var(--gold);font-size:.82rem;font-weight:700}
+.stop-row{display:flex;align-items:center;gap:8px;padding:8px 14px;border-top:1px solid var(--border)}
+.stop-row input{flex:1;background:transparent;border:none;color:var(--text);font-size:.84rem;outline:none}
+.stop-time{width:60px;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 6px;font-size:.76rem;outline:none;flex-shrink:0}
+.del-btn{all:unset;cursor:pointer;color:var(--muted);font-size:.9rem;padding:4px;flex-shrink:0}
+.del-btn:hover{color:var(--danger)}
+.add-stop-btn{all:unset;cursor:pointer;display:block;width:100%;text-align:center;padding:10px;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border)}
+.add-stop-btn:hover{color:var(--gold);background:rgba(201,168,76,.03)}
+.add-day-btn{all:unset;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border:1px dashed var(--gold-dark);border-radius:10px;color:var(--gold);font-size:.84rem;margin-bottom:10px;transition:all .2s}
+.add-day-btn:hover{background:rgba(201,168,76,.05)}
+.save-sched-btn{all:unset;cursor:pointer;background:var(--gold);color:#000;padding:10px 22px;border-radius:50px;font-weight:700;font-size:.82rem;transition:all .2s}
+.save-sched-btn:hover{background:var(--gold-light)}
+
+/* New group form */
+.new-group-form{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:18px}
+.new-group-form h3{color:var(--gold);font-size:.82rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.form-row{display:flex;gap:10px;flex-wrap:wrap}
+.form-row input{flex:1;min-width:160px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:10px;font-size:.88rem;outline:none}
+.form-row input:focus{border-color:var(--gold)}
+.create-btn{all:unset;cursor:pointer;background:var(--gold);color:#000;padding:11px 20px;border-radius:10px;font-weight:700;font-size:.84rem;white-space:nowrap;flex-shrink:0}
+.create-btn:hover{background:var(--gold-light)}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:18px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.stat-card .v{font-size:1.8rem;font-weight:700;color:var(--gold)}
+.stat-card .l{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+
+/* Tourist list */
+.tourist-row{display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px}
+.t-flag{font-size:1.3rem;flex-shrink:0}
+.t-name{flex:1;font-size:.84rem}
+.t-online{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0}
+
+.empty{text-align:center;color:var(--muted);padding:36px 20px;font-size:.86rem;line-height:1.8}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--gold-dark);color:var(--text);padding:10px 22px;border-radius:50px;font-size:.8rem;z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.loading-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:9999}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="loading-ov" id="loading"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<!-- LANDING -->
+<div class="screen active" id="scr-landing">
+  <div class="logo-area">
+    <div class="ankh">𓂀</div>
+    <h1>Guide Portal</h1>
+    <p>Khufu Guide · Tour Management</p>
+  </div>
+  <div id="panel-loggedin" style="display:none;width:100%;max-width:300px;text-align:center">
+    <div class="session-card">
+      <div class="gname" id="l-gname">—</div>
+      <div class="gemail" id="l-gemail">—</div>
+      <div class="cname" id="l-cname">—</div>
+    </div>
+    <button class="btn btn-gold" style="width:100%;margin-bottom:10px" onclick="goToDash()">Open My Dashboard →</button>
+    <button class="btn btn-outline" style="width:100%" onclick="doSwitch()">Switch Account</button>
+  </div>
+  <div id="panel-loggedout" class="landing-btns">
+    <button class="btn btn-gold" onclick="showScr('scr-register')">Register as Guide</button>
+    <div class="divider">— already registered? —</div>
+    <button class="btn btn-outline" onclick="showScr('scr-login')">Guide Login</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="screen" id="scr-login">
+  <div style="padding:16px 18px"><button class="back-btn" onclick="showScr('scr-landing')">← Back</button></div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:18px">
+    <div class="auth-card">
+      <h2>Guide Login 𓂀</h2>
+      <div class="sub">Sign in with your guide account.</div>
+      <div class="field"><label>Email</label><input type="email" id="li-email" placeholder="guide@email.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="li-pass" placeholder="••••••••"><div class="err" id="li-err"></div></div>
+      <button class="btn btn-gold" style="width:100%" onclick="doLogin()">Sign In</button>
+      <div class="auth-link">New guide? <span onclick="showScr('scr-register')">Register here</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div class="screen" id="scr-register">
+  <div style="padding:16px 18px"><button class="back-btn" onclick="showScr('scr-landing')">← Back</button></div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:18px">
+    <div class="auth-card">
+      <h2>Guide Registration</h2>
+      <div class="sub">You must be invited by a company before registering.<br>Enter the email your company invited.</div>
+      <div class="invite-notice" id="invite-notice">
+        ✓ Invite found! You've been invited by <span class="co" id="invite-co-name">—</span>
+      </div>
+      <div class="field">
+        <label>Email (must match your invite)</label>
+        <input type="email" id="re-email" placeholder="guide@email.com" oninput="checkInvite(this.value)">
+      </div>
+      <div class="field"><label>Full Name</label><input type="text" id="re-name" placeholder="Your full name"></div>
+      <div class="field"><label>Password (min 6 chars)</label><input type="password" id="re-pass" placeholder="••••••••"></div>
+      <div class="err" id="re-err"></div>
+      <button class="btn btn-gold" style="width:100%;margin-top:10px" onclick="doRegister()">Create Guide Account</button>
+      <div class="auth-link">Already registered? <span onclick="showScr('scr-login')">Sign in</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="screen" id="scr-dashboard">
+  <div class="dash-header">
+    <div class="brand">
+      <div class="ava" id="hdr-ava">G</div>
+      <div class="hdr-info">
+        <h2 id="hdr-name">Guide Name</h2>
+        <p id="hdr-co">Company</p>
+      </div>
+    </div>
+    <button class="icon-btn" onclick="doLogout()">⎋</button>
+  </div>
+  <div class="dash-tabs">
+    <button class="dash-tab active" data-tab="groups" onclick="switchTab('groups')">🏛️ My Groups</button>
+    <button class="dash-tab" data-tab="tourists" onclick="switchTab('tourists')">👥 Tourists</button>
+    <button class="dash-tab" data-tab="stats" onclick="switchTab('stats')">📊 Stats</button>
+  </div>
+
+  <!-- GROUPS TAB -->
+  <div class="tab-body active" id="tab-groups">
+    <div class="new-group-form">
+      <h3>Create New Tour Group</h3>
+      <div class="form-row">
+        <input type="text" id="ng-name" placeholder="Group name e.g. Cairo Discovery — Week 3">
+        <button class="create-btn" onclick="createGroup()">+ Create Group</button>
+      </div>
+      <div class="err" id="ng-err" style="margin-top:8px"></div>
+    </div>
+    <div class="section-hd">
+      <span>Your Tour Groups</span>
+      <span style="color:var(--muted);font-size:.72rem" id="groups-count">0 groups</span>
+    </div>
+    <div id="groups-list"><div class="empty">No groups yet.<br>Create your first tour group above.</div></div>
+  </div>
+
+  <!-- TOURISTS TAB -->
+  <div class="tab-body" id="tab-tourists">
+    <div class="section-hd">👥 Connected Tourists</div>
+    <div id="tourists-list"><div class="empty">Start a live session to see tourists here.</div></div>
+  </div>
+
+  <!-- STATS TAB -->
+  <div class="tab-body" id="tab-stats">
+    <div class="section-hd">📊 Your Statistics</div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="v" id="st-groups">0</div><div class="l">Total Groups</div></div>
+      <div class="stat-card"><div class="v" id="st-tourists">0</div><div class="l">Tourists Today</div></div>
+      <div class="stat-card"><div class="v" id="st-live">—</div><div class="l">Current Status</div></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getDatabase, ref, set, get, push, onValue, update, remove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const app = initializeApp({
+  apiKey:"AIzaSyCmTbUGrJn1_DBPGt6dBE0ok0iCO1SUGVE",
+  authDomain:"khufu-guide.firebaseapp.com",
+  databaseURL:"https://khufu-guide-default-rtdb.firebaseio.com",
+  projectId:"khufu-guide",storageBucket:"khufu-guide.firebasestorage.app",
+  messagingSenderId:"64813185174",appId:"1:64813185174:web:290746a3f60e843f76aab7"
+});
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+let cu = null, guideData = {}, intentional = false;
+const encEmail = e => e.toLowerCase().replace(/\./g,'_').replace(/@/g,'__at__');
+
+// ── AUTH STATE ──
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    cu = user;
+    const snap = await get(ref(db, `guides/${user.uid}`));
+    if (snap.exists()) guideData = snap.val();
+    if (intentional) {
+      intentional = false; loading(false);
+      renderDashboard(); showScr('scr-dashboard');
+    } else {
+      eid('l-gname').textContent = guideData.name||'Guide';
+      eid('l-gemail').textContent = user.email;
+      eid('l-cname').textContent = '🏢 ' + (guideData.companyName||'Company');
+      eid('panel-loggedin').style.display = 'block';
+      eid('panel-loggedout').style.display = 'none';
+      showScr('scr-landing');
+    }
+  } else {
+    cu = null; guideData = {}; intentional = false;
+    eid('panel-loggedin').style.display = 'none';
+    eid('panel-loggedout').style.display = 'flex';
+    loading(false); showScr('scr-landing');
+  }
+});
+
+window.goToDash = () => { renderDashboard(); showScr('scr-dashboard'); };
+window.doSwitch = async () => { loading(true); await signOut(auth); };
+window.doLogout = async () => { loading(true); await signOut(auth); };
+
+// ── LOGIN ──
+window.doLogin = async () => {
+  const email = v('li-email'), pass = v('li-pass'), err = eid('li-err');
+  err.classList.remove('show');
+  if (!email||!pass) { showErr(err,'Fill all fields'); return; }
+  loading(true);
+  try {
+    intentional = true;
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    intentional = false; loading(false);
+    const c = e.code||'';
+    showErr(err, c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')
+      ? 'Incorrect email or password.'
+      : c.includes('too-many') ? 'Too many attempts. Try again later.'
+      : 'Login failed: '+e.message);
+  }
+};
+
+// ── REGISTER (invite-gated) ──
+let foundInvite = null;
+let checkTimeout = null;
+
+window.checkInvite = (email) => {
+  clearTimeout(checkTimeout);
+  eid('invite-notice').classList.remove('show');
+  foundInvite = null;
+  if (!email.includes('@')) return;
+  checkTimeout = setTimeout(async () => {
+    const key = encEmail(email.trim());
+    const snap = await get(ref(db, `invites/${key}`));
+    if (snap.exists()) {
+      foundInvite = snap.val();
+      eid('invite-co-name').textContent = foundInvite.companyName||'your company';
+      if (foundInvite.name) eid('re-name').value = foundInvite.name;
+      eid('invite-notice').classList.add('show');
+    }
+  }, 600);
+};
+
+window.doRegister = async () => {
+  const email = v('re-email'), name = v('re-name'), pass = v('re-pass'), err = eid('re-err');
+  err.classList.remove('show');
+  if (!email) { showErr(err,'Enter your email'); return; }
+  if (!foundInvite) {
+    // Re-check in case they didn't trigger the input event
+    const key = encEmail(email);
+    const snap = await get(ref(db, `invites/${key}`));
+    if (!snap.exists()) { showErr(err,'No invite found for this email. Ask your company to invite you first.'); return; }
+    foundInvite = snap.val();
+  }
+  if (foundInvite.status === 'accepted') { showErr(err,'This invite was already used. Contact your company.'); return; }
+  if (!name) { showErr(err,'Enter your full name'); return; }
+  if (!pass||pass.length<6) { showErr(err,'Password must be at least 6 characters'); return; }
+
+  loading(true);
+  try {
+    intentional = true;
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    const uid = cred.user.uid;
+
+    // Save guide profile
+    guideData = {
+      name, email,
+      companyId: foundInvite.companyId,
+      companyName: foundInvite.companyName||'',
+      createdAt: Date.now()
+    };
+    await set(ref(db, `guides/${uid}`), guideData);
+
+    // Update invite to accepted
+    await update(ref(db, `invites/${encEmail(email)}`), { status:'accepted', guideUid: uid });
+
+    // Update company's guide list — find by email
+    const compGuides = await get(ref(db, `companies/${foundInvite.companyId}/guides`));
+    if (compGuides.exists()) {
+      const entries = Object.entries(compGuides.val());
+      const match = entries.find(([,g]) => g.email === email);
+      if (match) {
+        await update(ref(db, `companies/${foundInvite.companyId}/guides/${match[0]}`), { status:'active', guideUid: uid });
+      }
+    }
+  } catch(e) {
+    intentional = false; loading(false);
+    const c = e.code||'';
+    showErr(eid('re-err'), c.includes('email-already-in-use') ? 'This email is already registered. Please login.'
+      : c.includes('network') ? 'Network error.'
+      : 'Registration failed: '+e.message);
+  }
+};
+
+// ── DASHBOARD ──
+function renderDashboard() {
+  eid('hdr-name').textContent = guideData.name||'Guide';
+  eid('hdr-co').textContent = '🏢 '+(guideData.companyName||'—');
+  eid('hdr-ava').textContent = (guideData.name||'G')[0].toUpperCase();
+  loadGroupsRealtime();
+}
+
+// ── GROUPS ──
+function loadGroupsRealtime() {
+  if (!cu) return;
+  onValue(ref(db, `guides/${cu.uid}/groups`), snap => {
+    const groups = snap.val()||{};
+    const arr = Object.entries(groups);
+    eid('groups-count').textContent = arr.length+' group'+(arr.length!==1?'s':'');
+    eid('st-groups').textContent = arr.length;
+    renderGroupsList(arr);
+    loadTouristsAcrossGroups(arr);
+  });
+}
+
+function renderGroupsList(arr) {
+  const list = eid('groups-list');
+  if (!arr.length) { list.innerHTML = '<div class="empty">No groups yet.<br>Create your first tour group above.</div>'; return; }
+  list.innerHTML = arr.map(([gid, g]) => `
+    <div class="group-card" id="gc-${gid}">
+      <div class="group-card-header">
+        <div class="group-code-badge">${g.groupCode}</div>
+        <div class="group-info">
+          <div class="gname">${g.name}</div>
+          <div class="gmeta">👥 ${g.touristCount||0} tourists · ${(g.schedule||[]).reduce((a,d)=>a+(d.stops?.length||0),0)} stops</div>
+        </div>
+        ${g.isLive
+          ? `<div class="live-badge"><div class="dot"></div>LIVE</div>`
+          : `<div class="offline-badge" style="background:rgba(122,104,48,.1);color:var(--muted);border:1px solid var(--border);padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700">OFFLINE</div>`}
+      </div>
+      <div class="group-actions">
+        <button class="act-btn act-launch" onclick="launchTourApp('${gid}')">🚀 Open Tour App</button>
+        <button class="act-btn act-outline" onclick="toggleSchedule('${gid}')">🗓️ Schedule</button>
+        <button class="act-btn act-danger" onclick="deleteGroup('${gid}','${g.name}')">🗑️</button>
+      </div>
+      <div id="sched-${gid}" style="display:none">
+        <div class="schedule-editor" id="sched-content-${gid}"></div>
+      </div>
+    </div>`).join('');
+
+  // Render each group's schedule
+  arr.forEach(([gid, g]) => renderScheduleEditor(gid, g.schedule||[]));
+}
+
+function renderScheduleEditor(gid, schedule) {
+  const el = eid(`sched-content-${gid}`);
+  if (!el) return;
+  el.innerHTML = (schedule.map((day,di) => `
+    <div class="day-block">
+      <div class="day-hd">
+        <span>📅 Day ${di+1}</span>
+        <button class="del-btn" onclick="removeDay('${gid}',${di})">🗑️</button>
+      </div>
+      ${(day.stops||[]).map((s,si) => `
+        <div class="stop-row">
+          <input value="${s.name||''}" placeholder="Stop name" onchange="updateStop('${gid}',${di},${si},'name',this.value)">
+          <input class="stop-time" value="${s.time||''}" placeholder="09:00" onchange="updateStop('${gid}',${di},${si},'time',this.value)">
+          <button class="del-btn" onclick="removeStop('${gid}',${di},${si})">✕</button>
+        </div>`).join('')}
+      <button class="add-stop-btn" onclick="addStop('${gid}',${di})">+ Add Stop</button>
+    </div>`).join(''))
+    + `<button class="add-day-btn" onclick="addDay('${gid}')">+ Add Day</button>
+       <button class="save-sched-btn" onclick="saveSchedule('${gid}')">💾 Save Schedule</button>`;
+}
+
+// Group schedule state — store locally until saved
+const groupSchedules = {};
+
+window.toggleSchedule = (gid) => {
+  const el = eid(`sched-${gid}`);
+  el.style.display = el.style.display==='none'?'block':'none';
+};
+
+window.addDay = async (gid) => {
+  await ensureScheduleLoaded(gid);
+  groupSchedules[gid].push({stops:[{name:'',time:''}]});
+  renderScheduleEditor(gid, groupSchedules[gid]);
+  eid(`sched-${gid}`).style.display='block';
+};
+
+window.removeDay = async (gid, di) => {
+  await ensureScheduleLoaded(gid);
+  groupSchedules[gid].splice(di,1);
+  renderScheduleEditor(gid, groupSchedules[gid]);
+};
+
+window.addStop = async (gid, di) => {
+  await ensureScheduleLoaded(gid);
+  if (!groupSchedules[gid][di].stops) groupSchedules[gid][di].stops=[];
+  groupSchedules[gid][di].stops.push({name:'',time:''});
+  renderScheduleEditor(gid, groupSchedules[gid]);
+};
+
+window.removeStop = async (gid, di, si) => {
+  await ensureScheduleLoaded(gid);
+  groupSchedules[gid][di].stops.splice(si,1);
+  renderScheduleEditor(gid, groupSchedules[gid]);
+};
+
+window.updateStop = async (gid, di, si, field, val) => {
+  await ensureScheduleLoaded(gid);
+  groupSchedules[gid][di].stops[si][field] = val;
+};
+
+async function ensureScheduleLoaded(gid) {
+  if (!groupSchedules[gid]) {
+    const snap = await get(ref(db, `guides/${cu.uid}/groups/${gid}/schedule`));
+    groupSchedules[gid] = snap.val()||[];
+  }
+}
+
+window.saveSchedule = async (gid) => {
+  loading(true);
+  await set(ref(db, `guides/${cu.uid}/groups/${gid}/schedule`), groupSchedules[gid]||[]);
+  loading(false); toast('Schedule saved ✓');
+};
+
+window.createGroup = async () => {
+  const name = v('ng-name'), err = eid('ng-err');
+  err.classList.remove('show');
+  if (!name) { showErr(err,'Enter a group name'); return; }
+  loading(true);
+  const code = await generateCode();
+  const gRef = push(ref(db, `guides/${cu.uid}/groups`));
+  await set(gRef, {
+    name, groupCode:code, isLive:false, touristCount:0,
+    schedule:[], createdAt:Date.now(),
+    companyId: guideData.companyId
+  });
+  // Also register the room code so tourists can find it
+  await set(ref(db, `rooms/${code}`), {
+    guideId:cu.uid, groupId:gRef.key,
+    companyId:guideData.companyId, active:false, createdAt:Date.now()
+  });
+  loading(false); eid('ng-name').value='';
+  toast(`Group created! Code: ${code}`);
+};
+
+window.deleteGroup = async (gid, name) => {
+  if (!confirm(`Delete group "${name}"? This cannot be undone.`)) return;
+  loading(true);
+  const snap = await get(ref(db, `guides/${cu.uid}/groups/${gid}`));
+  const g = snap.val();
+  if (g?.groupCode) await remove(ref(db, `rooms/${g.groupCode}`));
+  await remove(ref(db, `guides/${cu.uid}/groups/${gid}`));
+  loading(false); toast('Group deleted');
+};
+
+window.launchTourApp = async (gid) => {
+  const snap = await get(ref(db, `guides/${cu.uid}/groups/${gid}`));
+  const g = snap.val();
+  if (!g) return;
+  const ctx = {
+    role:'guide', guideId:cu.uid, groupId:gid,
+    groupCode:g.groupCode, groupName:g.name,
+    companyId:guideData.companyId, companyName:guideData.companyName,
+    schedule:g.schedule||[]
+  };
+  localStorage.setItem('khufu_launch_ctx', JSON.stringify(ctx));
+  window.open('khufu_guide.html','_blank');
+};
+
+// ── TOURISTS ──
+function loadTouristsAcrossGroups(arr) {
+  let total = 0;
+  arr.forEach(([,g]) => { total += g.touristCount||0; });
+  eid('st-tourists').textContent = total;
+  const liveGroups = arr.filter(([,g])=>g.isLive);
+  eid('st-live').textContent = liveGroups.length ? '🔴 LIVE' : 'OFFLINE';
+
+  // Show tourists from live groups
+  const tList = eid('tourists-list');
+  if (!liveGroups.length) { tList.innerHTML='<div class="empty">No live session active.</div>'; return; }
+  tList.innerHTML='';
+  liveGroups.forEach(([,g]) => {
+    if (!g.groupCode) return;
+    onValue(ref(db, `rooms/${g.groupCode}/tourists`), snap => {
+      const tourists = snap.val()||{};
+      const entries = Object.entries(tourists);
+      if (!entries.length) { tList.innerHTML='<div class="empty">No tourists connected yet.</div>'; return; }
+      tList.innerHTML = entries.map(([,t])=>`
+        <div class="tourist-row">
+          <div class="t-flag">${t.flag||'🏳️'}</div>
+          <div class="t-name">Tourist · ${t.lang||'—'}</div>
+          <div class="t-online"></div>
+        </div>`).join('');
+    });
+  });
+}
+
+async function generateCode() {
+  const code = Math.floor(100000+Math.random()*900000).toString();
+  const snap = await get(ref(db, `rooms/${code}`));
+  return snap.exists() ? generateCode() : code;
+}
+
+// ── HELPERS ──
+window.showScr = id => { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); eid(id).classList.add('active'); };
+window.switchTab = tab => {
+  document.querySelectorAll('.dash-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  document.querySelectorAll('.tab-body').forEach(b=>b.classList.toggle('active',b.id==='tab-'+tab));
+};
+const eid = id => document.getElementById(id);
+const v = id => eid(id).value.trim();
+const loading = on => eid('loading').style.display = on?'flex':'none';
+const showErr = (el,msg) => { el.textContent=msg; el.classList.add('show'); };
+window.toast = msg => { const t=eid('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3200); };
+</script>
+</body>
+</html>
