@@ -548,7 +548,8 @@ window.launchTourApp = async (gid) => {
     guideName: guideData.name || 'Guide',
     groupCode:g.groupCode, groupName:g.name,
     companyId:guideData.companyId, companyName:guideData.companyName,
-    schedule:g.schedule||[]
+    schedule:g.schedule||[],
+    launchedAt: Date.now() // used to expire the context after 30 min
   };
   localStorage.setItem('khufu_launch_ctx', JSON.stringify(ctx));
   window.open('khufu_guide.html','_blank');
