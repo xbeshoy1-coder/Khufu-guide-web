@@ -776,22 +776,37 @@ window.doRegister = async () => {
   const pass = document.getElementById('reg-password').value;
   const errEl = document.getElementById('reg-error');
   errEl.classList.remove('show');
-  if (!name || !email || !pass) { errEl.textContent='Please fill all fields'; errEl.classList.add('show'); return; }
+
+  if (!name) { errEl.textContent='Please enter your company name'; errEl.classList.add('show'); return; }
+  if (!email) { errEl.textContent='Please enter your email'; errEl.classList.add('show'); return; }
+  if (!pass) { errEl.textContent='Please enter a password'; errEl.classList.add('show'); return; }
   if (pass.length < 6) { errEl.textContent='Password must be at least 6 characters'; errEl.classList.add('show'); return; }
+
   showLoading(true);
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     const now = Date.now();
-    await set(ref(db, `companies/${cred.user.uid}`), {
+    const companyRecord = {
       name, email, createdAt: now,
       trialStart: now, trialEnd: now + 14 * 86400000,
       schedule: [], guides: {}
-    });
-    companyData = { name, email, trialStart: now, trialEnd: now + 14 * 86400000, schedule: [], guides: {} };
+    };
+    await set(ref(db, `companies/${cred.user.uid}`), companyRecord);
+    companyData = companyRecord;
+    // Auth state listener will handle redirect to dashboard
   } catch(e) {
-    errEl.textContent = e.message.includes('email') ? 'Email already in use' : 'Registration failed. Try again.';
-    errEl.classList.add('show');
     showLoading(false);
+    const code = e.code || '';
+    let msg = '';
+    if (code === 'auth/email-already-in-use') msg = 'This email is already registered. Please login instead.';
+    else if (code === 'auth/invalid-email') msg = 'Invalid email address format.';
+    else if (code === 'auth/weak-password') msg = 'Password is too weak. Use at least 6 characters.';
+    else if (code === 'auth/network-request-failed') msg = 'Network error. Check your internet connection.';
+    else if (code === 'auth/operation-not-allowed') msg = 'Email sign-up is not enabled. Please contact support.';
+    else if (code === 'auth/too-many-requests') msg = 'Too many attempts. Please wait a moment and try again.';
+    else msg = 'Registration failed: ' + (e.message || code || 'Unknown error');
+    errEl.textContent = msg;
+    errEl.classList.add('show');
   }
 };
 
