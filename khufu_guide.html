@@ -544,8 +544,13 @@ const ANTHROPIC_KEY = 'sk-ant-api03-uRKJKSVzjQ13Nn8Wt8Cl7imSfUCQmWByPyodFIupv7sN
 const langNames = {en:'English',ar:'Arabic',fr:'French',de:'German',es:'Spanish',ja:'Japanese'};
 const langFlags = {en:'🇬🇧',ar:'🇸🇦',fr:'🇫🇷',de:'🇩🇪',es:'🇪🇸',ja:'🇯🇵'};
 
-// Auth
-onAuthStateChanged(auth, u => { currentUser = u; });
+// Auth — expose a promise so tourist flow can wait for auth before joining
+let authReady;
+const authReadyPromise = new Promise(resolve => { authReady = resolve; });
+onAuthStateChanged(auth, u => {
+  currentUser = u;
+  if (u) authReady(u); // resolve once we have a user
+});
 signInAnonymously(auth).catch(console.error);
 
 // Load launch context (set by guide portal)
@@ -561,7 +566,7 @@ window.addEventListener('load', () => {
     if (ctx.role === 'guide' && ctx.groupCode) {
       role = 'guide';
       selectedLang = 'en';
-      setTimeout(() => initApp(), 100);
+      authReadyPromise.then(() => initApp());
     }
   } catch(e) {}
   initWallpapers();
@@ -631,6 +636,9 @@ window.joinRoom = async () => {
       }
     }
   }
+  // Wait for anonymous auth to be ready before joining
+  // This prevents the race condition where currentUser is null
+  await authReadyPromise;
   initApp();
 };
 
@@ -805,19 +813,24 @@ function lockLiveTabs() {
 }
 
 function joinAsPresence() {
-  if (!roomCode || !currentUser) return;
+  if (!roomCode) { console.error('joinAsPresence: no roomCode'); return; }
+  if (!currentUser) { console.error('joinAsPresence: no currentUser'); return; }
   unlockLiveTabs();
   touristPresenceRef = ref(db, `rooms/${roomCode}/tourists/${currentUser.uid}`);
   set(touristPresenceRef, {
     lang: selectedLang, flag: langFlags[selectedLang],
+    name: `Tourist ${langFlags[selectedLang]}`,
     joinedAt: Date.now(), active: true
-  });
+  }).catch(e => console.error('presence write failed:', e));
   onDisconnect(touristPresenceRef).remove();
-  setBannerLive(true);
+  // Listen for room active state — update banner accordingly
+  onValue(ref(db, `rooms/${roomCode}/active`), snap => {
+    setBannerLive(snap.val() === true);
+  });
   document.getElementById('chat-room-code').textContent = roomCode;
   document.getElementById('live-room-badge').textContent = `#${roomCode}`;
   document.getElementById('live-room-badge').style.display = '';
-  toast('Joined room ' + roomCode);
+  toast('✓ Joined group ' + roomCode);
 }
 
 // ── CHAT ──
