@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Khufu Guide</title>
+<style>
+:root {
+  --bg:#000000; --gold:#C9A84C; --gold-light:#E8C97A; --gold-dark:#8B6914;
+  --text:#EDE0B8; --muted:#7A6830; --sent:#2A1F00; --recv:#111100;
+  --surface:#0D0D00; --surface2:#1A1500; --border:#2A2000; --danger:#cc4444;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--gold-dark);border-radius:2px}
+
+/* Screens */
+.screen{display:none;flex-direction:column;height:100vh;overflow:hidden}
+.screen.active{display:flex}
+
+/* SPLASH / LANGUAGE */
+#scr-splash{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a1200 0%,#000 70%);text-align:center;padding:30px 20px}
+.splash-ankh{font-size:64px;margin-bottom:16px}
+.splash-title{font-size:2rem;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px}
+.splash-sub{color:var(--muted);font-size:.9rem;margin-bottom:40px}
+.lang-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:340px}
+.lang-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:14px 8px;border-radius:12px;font-size:.85rem;cursor:pointer;transition:all .2s;text-align:center}
+.lang-btn:hover,.lang-btn.sel{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold)}
+.lang-flag{font-size:1.5rem;display:block;margin-bottom:4px}
+.continue-btn{margin-top:24px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000;border:none;padding:16px 40px;border-radius:50px;font-size:1rem;font-weight:700;cursor:pointer;letter-spacing:1px}
+
+/* ROLE */
+#scr-role{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a1200 0%,#000 70%);text-align:center;padding:30px 20px}
+.role-title{font-size:1.3rem;color:var(--gold);margin-bottom:8px}
+.role-sub{color:var(--muted);font-size:.85rem;margin-bottom:36px}
+.role-cards{display:flex;flex-direction:column;gap:16px;width:100%;max-width:320px}
+.role-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;cursor:pointer;transition:all .2s;text-align:center}
+.role-card:hover{border-color:var(--gold);background:rgba(201,168,76,.05)}
+.role-icon{font-size:2.5rem;margin-bottom:10px}
+.role-card h3{color:var(--gold);font-size:1.1rem;margin-bottom:4px}
+.role-card p{color:var(--muted);font-size:.8rem}
+.join-code-section{margin-top:20px;width:100%;max-width:320px}
+.join-tabs{display:flex;gap:0;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:14px}
+.join-tab{flex:1;padding:8px;border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);text-align:center;transition:all .2s}
+.join-tab.active{background:var(--surface);color:var(--gold)}
+.code-input{display:flex;gap:8px}
+.code-input input{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:10px;font-size:1.1rem;letter-spacing:4px;text-align:center;outline:none}
+.code-input input:focus{border-color:var(--gold)}
+.join-btn{background:var(--gold);color:#000;border:none;padding:12px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-size:.9rem}
+.back-link{all:unset;color:var(--muted);cursor:pointer;font-size:.85rem;margin-top:16px;display:block}
+.back-link:hover{color:var(--gold)}
+
+/* MAIN APP */
+#scr-app{position:relative}
+.live-banner{padding:6px 16px;font-size:.75rem;font-weight:700;letter-spacing:1px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0}
+.live-banner.offline{background:rgba(122,104,48,.15);color:var(--muted)}
+.live-banner.live{background:rgba(201,168,76,.15);color:var(--gold)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.live-banner.live .live-dot{animation:blink 1s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* Tabs bar */
+.tabs-bar{display:flex;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;-webkit-overflow-scrolling:touch}
+.tabs-bar::-webkit-scrollbar{height:0}
+.tab-btn{all:unset;padding:12px 14px;font-size:.75rem;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:58px}
+.tab-btn .tab-icon{font-size:1.1rem}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-btn.locked{opacity:.35;pointer-events:none}
+
+/* Tab panels */
+.tab-panel{display:none;flex:1;overflow:hidden;flex-direction:column}
+.tab-panel.active{display:flex}
+
+/* SCHEDULE panel */
+.schedule-panel{padding:16px;overflow-y:auto;flex:1}
+.day-label{color:var(--gold);font-size:.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px;padding:6px 12px;background:rgba(201,168,76,.08);border-radius:6px;display:inline-block}
+.stop-row{display:flex;gap:12px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;align-items:center;position:relative}
+.stop-row.now{border-color:var(--gold);background:rgba(201,168,76,.06)}
+.now-badge{background:var(--gold);color:#000;font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px;position:absolute;top:-8px;right:10px;letter-spacing:.5px}
+.stop-time{color:var(--muted);font-size:.75rem;white-space:nowrap;width:40px;flex-shrink:0}
+.stop-dot-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0}
+.stop-dot2{width:10px;height:10px;border-radius:50%;border:2px solid var(--gold-dark);background:transparent}
+.stop-row.now .stop-dot2{background:var(--gold);border-color:var(--gold)}
+.stop-line{width:2px;height:20px;background:var(--border)}
+.stop-name{flex:1;font-size:.9rem}
+
+/* CHAT panel */
+.chat-panel{position:relative;display:flex;flex-direction:column;flex:1;overflow:hidden}
+.chat-bg{position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%230a0800'/%3E%3Ctext x='20' y='40' font-size='18' fill='%231a1400' opacity='.8'%3E𓀀 𓁀 𓂀 𓃀%3C/text%3E%3Ctext x='10' y='80' font-size='14' fill='%23151000' opacity='.8'%3E𓄀 𓅀 𓆀 𓇀 𓈀%3C/text%3E%3Ctext x='30' y='120' font-size='16' fill='%231a1400' opacity='.8'%3E𓉀 𓊀 𓋀 𓌀%3C/text%3E%3Ctext x='5' y='160' font-size='14' fill='%23151000' opacity='.8'%3E𓍀 𓎀 𓏀 𓐀 𓑀%3C/text%3E%3Ctext x='40' y='195' font-size='16' fill='%231a1400' opacity='.8'%3E𓒀 𓓀 𓔀 𓕀%3C/text%3E%3C/svg%3E");background-repeat:repeat;background-size:200px 200px}
+.chat-overlay{position:absolute;inset:0;background:rgba(0,0,0,.38)}
+.chat-header{position:relative;z-index:2;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.5);border-bottom:1px solid var(--border);flex-shrink:0}
+.chat-header .room-info{font-size:.8rem;color:var(--muted)}
+.chat-header .room-code{color:var(--gold);font-weight:700;font-size:1rem;letter-spacing:2px}
+.chat-settings-btn{all:unset;cursor:pointer;color:var(--muted);font-size:1.2rem;padding:6px}
+.chat-settings-btn:hover{color:var(--gold)}
+.messages-area{flex:1;overflow-y:auto;padding:12px 12px 8px;position:relative;z-index:2}
+.msg{display:flex;flex-direction:column;margin-bottom:8px;max-width:75%}
+.msg.sent{align-self:flex-end;align-items:flex-end;margin-left:auto}
+.msg.recv{align-self:flex-start;align-items:flex-start}
+.msg-bubble{padding:9px 13px;border-radius:12px;font-size:.88rem;line-height:1.45;position:relative;word-break:break-word}
+.msg.sent .msg-bubble{background:var(--sent);border:1px solid rgba(201,168,76,.25);border-bottom-right-radius:4px}
+.msg.recv .msg-bubble{background:var(--recv);border:1px solid rgba(255,255,255,.06);border-bottom-left-radius:4px}
+.msg-sender{font-size:.7rem;color:var(--gold);margin-bottom:3px;font-weight:600}
+.msg-time{font-size:.65rem;color:var(--gold-dark);margin-top:3px}
+.msg-image{max-width:200px;border-radius:8px;display:block;cursor:pointer}
+.voice-note-player{display:flex;align-items:center;gap:8px;min-width:160px}
+.play-btn{all:unset;cursor:pointer;font-size:1.1rem;color:var(--gold)}
+.waveform{flex:1;height:24px;position:relative;overflow:hidden}
+.wave-bars{display:flex;gap:2px;align-items:center;height:100%}
+.wave-bar{width:3px;border-radius:2px;background:var(--gold-dark);transition:height .1s}
+.voice-dur{font-size:.7rem;color:var(--muted);white-space:nowrap}
+.date-sep{text-align:center;margin:12px 0;position:relative;z-index:2}
+.date-sep span{background:rgba(0,0,0,.6);color:var(--muted);font-size:.7rem;padding:3px 12px;border-radius:20px;border:1px solid var(--border)}
+
+/* Image preview bar */
+.img-preview-bar{position:relative;z-index:2;padding:8px 12px;background:rgba(0,0,0,.7);border-top:1px solid var(--border);display:none;align-items:center;gap:10px;flex-shrink:0}
+.img-preview-bar.show{display:flex}
+.img-preview-thumb{width:50px;height:50px;border-radius:8px;object-fit:cover;border:1px solid var(--gold-dark)}
+.img-caption-input{flex:1;background:transparent;border:none;color:var(--text);font-size:.85rem;outline:none;placeholder-color:var(--muted)}
+.img-preview-bar .send-btn{all:unset;cursor:pointer;color:var(--gold);font-size:1.3rem;padding:4px}
+.img-preview-bar .cancel-btn{all:unset;cursor:pointer;color:var(--muted);font-size:1rem;padding:4px}
+
+/* Recording bar */
+.rec-bar{position:relative;z-index:2;padding:10px 16px;background:rgba(0,0,0,.7);border-top:1px solid var(--border);display:none;align-items:center;gap:12px;flex-shrink:0}
+.rec-bar.show{display:flex}
+.rec-dot{width:10px;height:10px;border-radius:50%;background:#ff4444;animation:blink .8s infinite}
+.rec-timer{color:var(--text);font-size:.9rem;font-weight:600;flex:1}
+.rec-cancel{all:unset;cursor:pointer;font-size:1.3rem;color:var(--muted)}
+.rec-send{all:unset;cursor:pointer;font-size:1.3rem;color:var(--gold)}
+
+/* Chat input bar */
+.chat-input-bar{position:relative;z-index:2;padding:8px 10px;background:rgba(0,0,0,.7);border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.plus-btn,.cam-btn,.mic-btn{all:unset;cursor:pointer;font-size:1.2rem;color:var(--muted);padding:6px;flex-shrink:0}
+.plus-btn:hover,.cam-btn:hover,.mic-btn:hover{color:var(--gold)}
+.msg-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:var(--text);padding:10px 16px;border-radius:22px;font-size:.9rem;outline:none;resize:none;max-height:100px;line-height:1.4}
+.msg-input::placeholder{color:var(--muted)}
+
+/* Plus menu */
+.plus-menu{position:absolute;bottom:65px;left:10px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:8px;z-index:100;display:none}
+.plus-menu.show{display:block}
+.plus-menu-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;color:var(--text);font-size:.85rem;white-space:nowrap}
+.plus-menu-item:hover{background:rgba(201,168,76,.1);color:var(--gold)}
+
+/* Wallpaper modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--surface);border:1px solid var(--gold-dark);border-radius:16px;padding:24px;width:100%;max-width:380px;max-height:85vh;overflow-y:auto}
+.modal-box h3{color:var(--gold);font-size:1rem;margin-bottom:16px}
+.wallpaper-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.wp-opt{height:60px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all .2s;overflow:hidden}
+.wp-opt:hover,.wp-opt.sel{border-color:var(--gold)}
+.wp-opt div{height:100%;border-radius:6px}
+.darkness-row{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.darkness-row label{color:var(--muted);font-size:.8rem;white-space:nowrap}
+.darkness-row input{flex:1;accent-color:var(--gold)}
+.modal-close{all:unset;cursor:pointer;color:var(--muted);float:right;font-size:1.1rem}
+.modal-close:hover{color:var(--gold)}
+
+/* QR modal */
+.qr-modal-content{text-align:center}
+.room-code-display{font-size:2.5rem;letter-spacing:6px;color:var(--gold);font-weight:700;margin:16px 0}
+.qr-wrap{background:#fff;border-radius:12px;padding:16px;display:inline-block;margin:16px 0}
+#qr-canvas{display:block}
+.qr-sub{color:var(--muted);font-size:.8rem;margin-bottom:16px}
+.end-live-btn{background:var(--danger);color:#fff;border:none;padding:12px 24px;border-radius:50px;cursor:pointer;font-weight:700}
+
+/* SCANNER panel */
+.scanner-panel{flex:1;overflow-y:auto;padding:16px}
+.scan-area{border:2px dashed var(--border);border-radius:16px;padding:30px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px;position:relative}
+.scan-area:hover{border-color:var(--gold);background:rgba(201,168,76,.03)}
+.scan-icon{font-size:3rem;margin-bottom:10px}
+.scan-area h3{color:var(--gold);margin-bottom:6px}
+.scan-area p{color:var(--muted);font-size:.8rem}
+.scan-preview{max-width:100%;border-radius:12px;margin-bottom:16px;display:none}
+.scan-result{background:var(--surface);border:1px solid var(--gold-dark);border-radius:14px;padding:20px;display:none}
+.scan-result h2{color:var(--gold);font-size:1.2rem;margin-bottom:4px}
+.scan-result .era{color:var(--muted);font-size:.75rem;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+.scan-result .desc{font-size:.9rem;line-height:1.6;margin-bottom:12px;color:var(--text)}
+.scan-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.75rem;font-weight:700;margin-bottom:6px}
+.fun-fact{background:rgba(201,168,76,.08);border-left:3px solid var(--gold);padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:10px;font-size:.85rem}
+.tip{background:rgba(100,200,100,.08);border-left:3px solid #4a8;padding:10px 14px;border-radius:0 8px 8px 0;font-size:.85rem}
+.scan-actions{display:flex;gap:10px;margin-top:14px}
+.save-fav-btn{flex:1;background:transparent;border:1px solid var(--gold);color:var(--gold);padding:10px;border-radius:50px;cursor:pointer;font-size:.85rem;transition:all .2s}
+.save-fav-btn:hover{background:rgba(201,168,76,.1)}
+.scan-again-btn{flex:1;background:var(--gold);color:#000;border:none;padding:10px;border-radius:50px;cursor:pointer;font-size:.85rem;font-weight:700}
+.scanning-loader{text-align:center;padding:30px;display:none}
+.scanning-loader .scan-spin{width:50px;height:50px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+
+/* FAVORITES panel */
+.favs-panel{flex:1;overflow-y:auto;padding:16px}
+.fav-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:center}
+.fav-icon{font-size:2rem;flex-shrink:0}
+.fav-info{flex:1}
+.fav-name{color:var(--gold);font-size:.9rem;font-weight:600}
+.fav-era{color:var(--muted);font-size:.75rem;margin-top:2px}
+.fav-del{all:unset;cursor:pointer;color:var(--muted);font-size:1rem;padding:4px}
+.fav-del:hover{color:var(--danger)}
+.empty-state{text-align:center;color:var(--muted);padding:50px 20px;font-size:.9rem}
+
+/* TRANSLATE/LISTEN panel */
+.translate-panel{flex:1;overflow-y:auto;padding:20px;text-align:center}
+.mic-big-btn{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));border:none;cursor:pointer;font-size:2.2rem;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;transition:all .2s}
+.mic-big-btn.recording{animation:pulse-gold 1s infinite;background:rgba(201,168,76,.2);border:2px solid var(--gold)}
+@keyframes pulse-gold{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,.4)}50%{box-shadow:0 0 0 16px rgba(201,168,76,0)}}
+.translate-label{color:var(--muted);font-size:.85rem;margin-bottom:24px}
+.translate-result{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:left;margin-bottom:12px;display:none}
+.translate-result .lang-tag{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.translate-result .content{font-size:.95rem;line-height:1.6}
+.listen-area{padding:20px;text-align:center}
+.listen-icon{font-size:4rem;margin-bottom:16px;opacity:.5}
+.listen-msg{color:var(--muted);font-size:.9rem}
+
+/* TOURISTS panel */
+.tourists-panel{flex:1;overflow-y:auto;padding:16px}
+.tourist-row{display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+.tourist-flag{font-size:1.4rem;flex-shrink:0}
+.tourist-name{flex:1;font-size:.9rem}
+.tourist-online{width:8px;height:8px;border-radius:50%;background:#4a8;flex-shrink:0}
+
+/* MAP panel */
+.map-panel{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:20px;text-align:center}
+.map-icon{font-size:4rem;opacity:.3}
+.map-msg{color:var(--muted);font-size:.9rem}
+
+/* Admin panel */
+.admin-panel-wrap{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:300;display:none;flex-direction:column}
+.admin-panel-wrap.show{display:flex}
+.admin-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.admin-header h2{color:var(--gold);font-size:1rem}
+.close-admin{all:unset;cursor:pointer;color:var(--muted);font-size:1.2rem}
+.admin-tabs{display:flex;border-bottom:1px solid var(--border)}
+.admin-tab{flex:1;padding:12px;text-align:center;font-size:.8rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.admin-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.admin-content{flex:1;overflow-y:auto;padding:16px}
+.admin-stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+.admin-stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.admin-stat .val{font-size:1.8rem;font-weight:700;color:var(--gold)}
+.admin-stat .lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+
+/* Live controls */
+.guide-live-controls{padding:14px 16px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:10px;align-items:center}
+.start-live-btn{flex:1;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000;border:none;padding:12px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.9rem}
+.admin-btn{all:unset;cursor:pointer;color:var(--muted);font-size:1.4rem;padding:6px}
+.admin-btn:hover{color:var(--gold)}
+
+/* Toast */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--gold-dark);color:var(--text);padding:10px 22px;border-radius:50px;font-size:.82rem;z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:360px){.tab-btn{padding:10px 10px;min-width:50px;font-size:.68rem}}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- WALLPAPER MODAL -->
+<div class="modal-overlay" id="modal-wallpaper">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-wallpaper')">✕</button>
+    <h3>Chat Wallpaper</h3>
+    <div class="wallpaper-grid" id="wp-grid"></div>
+    <div>
+      <label style="color:var(--muted);font-size:.8rem;display:block;margin-bottom:8px">Custom Upload</label>
+      <input type="file" id="wp-upload" accept="image/*" onchange="setCustomWallpaper(this)" style="color:var(--muted);font-size:.8rem">
+    </div>
+    <div class="darkness-row" style="margin-top:14px">
+      <label>Darkness</label>
+      <input type="range" min="0" max="80" value="38" id="darkness-slider" oninput="setDarkness(this.value)">
+      <span id="darkness-val" style="color:var(--muted);font-size:.8rem;width:32px">38%</span>
+    </div>
+  </div>
+</div>
+
+<!-- QR / LIVE MODAL -->
+<div class="modal-overlay" id="modal-qr">
+  <div class="modal-box qr-modal-content">
+    <h3>🔴 Live Session</h3>
+    <p style="color:var(--muted);font-size:.8rem">Share this code with tourists</p>
+    <div class="room-code-display" id="live-room-code-display">------</div>
+    <div class="qr-wrap">
+      <canvas id="qr-canvas" width="160" height="160"></canvas>
+    </div>
+    <p class="qr-sub">Tourists scan QR or type code to join</p>
+    <button class="end-live-btn" onclick="endLive()">⏹ End Session</button>
+  </div>
+</div>
+
+<!-- SCREEN: Language -->
+<div class="screen active" id="scr-splash">
+  <div class="splash-ankh">𓂀</div>
+  <div class="splash-title" id="app-title">Khufu Guide</div>
+  <div class="splash-sub">Choose your language</div>
+  <div class="lang-grid">
+    <div class="lang-btn sel" data-lang="en" onclick="selectLang(this)"><span class="lang-flag">🇬🇧</span>English</div>
+    <div class="lang-btn" data-lang="ar" onclick="selectLang(this)"><span class="lang-flag">🇸🇦</span>العربية</div>
+    <div class="lang-btn" data-lang="fr" onclick="selectLang(this)"><span class="lang-flag">🇫🇷</span>Français</div>
+    <div class="lang-btn" data-lang="de" onclick="selectLang(this)"><span class="lang-flag">🇩🇪</span>Deutsch</div>
+    <div class="lang-btn" data-lang="es" onclick="selectLang(this)"><span class="lang-flag">🇪🇸</span>Español</div>
+    <div class="lang-btn" data-lang="ja" onclick="selectLang(this)"><span class="lang-flag">🇯🇵</span>日本語</div>
+  </div>
+  <button class="continue-btn" onclick="goToRole()">Continue →</button>
+</div>
+
+<!-- SCREEN: Role -->
+<div class="screen" id="scr-role">
+  <div class="role-title">𓂀 Who are you?</div>
+  <div class="role-sub" id="role-sub">Select your role to continue</div>
+  <div class="role-cards">
+    <div class="role-card" onclick="startAsGuide()">
+      <div class="role-icon">🏛️</div>
+      <h3>Tour Guide</h3>
+      <p>Host a live session for your group</p>
+    </div>
+    <div class="role-card" id="tourist-card">
+      <div class="role-icon">🎒</div>
+      <h3>Tourist</h3>
+      <p>Join a guide's live tour</p>
+    </div>
+  </div>
+
+  <div class="join-code-section" id="join-section" style="display:none">
+    <div class="join-tabs">
+      <div class="join-tab active" onclick="switchJoinTab('code')">📝 Enter Code</div>
+      <div class="join-tab" onclick="switchJoinTab('qr')">📷 Scan QR</div>
+    </div>
+    <div id="join-tab-code">
+      <div class="code-input">
+        <input type="text" id="room-code-input" maxlength="6" placeholder="000000">
+        <button class="join-btn" onclick="joinRoom()">Join</button>
+      </div>
+    </div>
+    <div id="join-tab-qr" style="display:none">
+      <video id="qr-video" style="width:100%;border-radius:12px;background:#000;aspect-ratio:1" autoplay playsinline></video>
+      <p style="color:var(--muted);font-size:.75rem;margin-top:8px;text-align:center">Point camera at QR code</p>
+    </div>
+    <button class="back-link" onclick="hideJoinSection()">← Back</button>
+  </div>
+</div>
+
+<!-- SCREEN: App -->
+<div class="screen" id="scr-app">
+  <div class="live-banner offline" id="live-banner">
+    <div class="live-dot"></div>
+    <span id="live-banner-text">OFFLINE</span>
+    <span id="live-room-badge" style="display:none;font-size:.75rem;color:var(--gold-light);margin-left:8px"></span>
+  </div>
+
+  <div class="tabs-bar" id="tabs-bar"></div>
+
+  <!-- Schedule -->
+  <div class="tab-panel active" id="panel-schedule">
+    <div class="schedule-panel" id="schedule-content">
+      <div class="empty-state">No schedule loaded. Go to portal to add stops.</div>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="tab-panel" id="panel-chat">
+    <div class="chat-panel">
+      <div class="chat-bg" id="chat-bg-el"></div>
+      <div class="chat-overlay" id="chat-overlay-el"></div>
+      <div class="chat-header">
+        <div>
+          <div class="room-info">Room</div>
+          <div class="room-code" id="chat-room-code">—</div>
+        </div>
+        <button class="chat-settings-btn" onclick="openModal('modal-wallpaper')">⋮</button>
+      </div>
+      <div class="messages-area" id="messages-area">
+        <div class="date-sep"><span>Today</span></div>
+      </div>
+      <div class="img-preview-bar" id="img-preview-bar">
+        <img class="img-preview-thumb" id="img-preview-thumb">
+        <input class="img-caption-input" id="img-caption" placeholder="Add caption...">
+        <button class="cancel-btn" onclick="cancelImagePreview()">✕</button>
+        <button class="send-btn" onclick="sendImageMsg()">➤</button>
+      </div>
+      <div class="rec-bar" id="rec-bar">
+        <div class="rec-dot"></div>
+        <span class="rec-timer" id="rec-timer">0:00</span>
+        <button class="rec-cancel" onclick="cancelRecording()">🗑️</button>
+        <button class="rec-send" onclick="stopAndSendRecording()">✅</button>
+      </div>
+      <div class="chat-input-bar" id="chat-input-bar">
+        <button class="plus-btn" onclick="togglePlusMenu()">➕</button>
+        <textarea class="msg-input" id="msg-input" placeholder="Message..." rows="1" oninput="onMsgInput(this)"></textarea>
+        <button class="cam-btn" id="cam-btn" onclick="triggerImageUpload()">📷</button>
+        <button class="mic-btn" id="mic-send-btn" onclick="onMicSendClick()">🎤</button>
+        <input type="file" id="chat-img-input" accept="image/*" style="display:none" onchange="onChatImageSelected(this)">
+        <input type="file" id="chat-doc-input" accept="*/*" style="display:none">
+      </div>
+      <div class="plus-menu" id="plus-menu">
+        <div class="plus-menu-item" onclick="triggerImageUpload();togglePlusMenu()">🖼️ Photos</div>
+        <div class="plus-menu-item" onclick="document.getElementById('chat-doc-input').click();togglePlusMenu()">📄 Document</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scanner -->
+  <div class="tab-panel" id="panel-scanner">
+    <div class="scanner-panel">
+      <div class="scan-area" onclick="triggerScan()">
+        <div class="scan-icon">📷</div>
+        <h3>Monument Scanner</h3>
+        <p>Tap to take photo or upload image</p>
+        <input type="file" id="scan-input" accept="image/*" capture="environment" style="display:none" onchange="onScanImage(this)">
+      </div>
+      <img class="scan-preview" id="scan-preview">
+      <div class="scanning-loader" id="scanning-loader">
+        <div class="scan-spin"></div>
+        <p style="color:var(--muted)">Identifying monument...</p>
+      </div>
+      <div class="scan-result" id="scan-result">
+        <h2 id="res-name">—</h2>
+        <div class="era" id="res-era">—</div>
+        <div class="desc" id="res-desc"></div>
+        <div class="fun-fact" id="res-fact"></div>
+        <div class="tip" id="res-tip"></div>
+        <div class="scan-actions">
+          <button class="save-fav-btn" onclick="saveToFavs()">⭐ Save</button>
+          <button class="scan-again-btn" onclick="resetScanner()">🔄 Scan Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Favorites -->
+  <div class="tab-panel" id="panel-favorites">
+    <div class="favs-panel" id="favs-content">
+      <div class="empty-state">⭐ No saved monuments yet.<br>Scan a monument and tap Save.</div>
+    </div>
+  </div>
+
+  <!-- Translate (guide) -->
+  <div class="tab-panel" id="panel-translate">
+    <div class="translate-panel">
+      <p style="color:var(--muted);font-size:.85rem;margin-bottom:20px">Speak — your voice will be translated for all tourists in their language.</p>
+      <button class="mic-big-btn" id="translate-mic" onclick="toggleTranslateMic()">🎤</button>
+      <p class="translate-label" id="translate-status">Tap mic to start speaking</p>
+      <div class="translate-result" id="translate-orig">
+        <div class="lang-tag">Original</div>
+        <div class="content" id="translate-orig-text"></div>
+      </div>
+      <div class="translate-result" id="translate-trans">
+        <div class="lang-tag" id="translate-lang-tag">Translation</div>
+        <div class="content" id="translate-trans-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Listen (tourist) -->
+  <div class="tab-panel" id="panel-listen">
+    <div class="listen-area">
+      <div class="listen-icon">🎧</div>
+      <div class="listen-msg" id="listen-msg">Waiting for guide to speak...<br><br><span style="font-size:.75rem">Translations from your guide will appear here in your language.</span></div>
+      <div class="translate-result" id="listen-result" style="display:none;text-align:left;margin-top:20px">
+        <div class="lang-tag" id="listen-lang-tag">Translation</div>
+        <div class="content" id="listen-result-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tourists (guide) -->
+  <div class="tab-panel" id="panel-tourists">
+    <div class="tourists-panel" id="tourists-content">
+      <div class="empty-state">No tourists connected yet.<br>Start a live session to see tourists here.</div>
+    </div>
+  </div>
+
+  <!-- Map -->
+  <div class="tab-panel" id="panel-map">
+    <div class="map-panel">
+      <div class="map-icon">🗺️</div>
+      <div class="map-msg">Group map is available during live session.<br><br>Start live to share locations.</div>
+    </div>
+  </div>
+
+  <!-- Guide live controls -->
+  <div id="guide-live-controls" style="display:none">
+    <div class="guide-live-controls">
+      <button class="start-live-btn" id="start-live-btn" onclick="startLive()">🔴 Start Live Session</button>
+      <button class="admin-btn" onclick="openAdmin()" title="Admin">⚙️</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Panel -->
+<div class="admin-panel-wrap" id="admin-panel">
+  <div class="admin-header">
+    <h2>⚙️ Admin Panel</h2>
+    <button class="close-admin" onclick="closeAdmin()">✕</button>
+  </div>
+  <div class="admin-tabs">
+    <div class="admin-tab active" onclick="switchAdminTab('stats')">📊 Stats</div>
+    <div class="admin-tab" onclick="switchAdminTab('schedule')">🗓️ Schedule</div>
+  </div>
+  <div class="admin-content" id="admin-tab-stats">
+    <div class="admin-stat-grid">
+      <div class="admin-stat"><div class="val" id="adm-tourists">0</div><div class="lbl">Tourists</div></div>
+      <div class="admin-stat"><div class="val" id="adm-duration">0m</div><div class="lbl">Duration</div></div>
+      <div class="admin-stat"><div class="val" id="adm-msgs">0</div><div class="lbl">Messages</div></div>
+      <div class="admin-stat"><div class="val" id="adm-langs">0</div><div class="lbl">Languages</div></div>
+    </div>
+  </div>
+  <div class="admin-content" id="admin-tab-schedule" style="display:none">
+    <div id="admin-schedule-editor"></div>
+    <button class="save-fav-btn" onclick="saveAdminSchedule()" style="width:100%;margin-top:10px">💾 Save Schedule</button>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getDatabase, ref, set, get, push, onValue, remove, update, onDisconnect, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const app = initializeApp({
+  apiKey:"AIzaSyCmTbUGrJn1_DBPGt6dBE0ok0iCO1SUGVE",
+  authDomain:"khufu-guide.firebaseapp.com",
+  databaseURL:"https://khufu-guide-default-rtdb.firebaseio.com",
+  projectId:"khufu-guide",
+  storageBucket:"khufu-guide.firebasestorage.app",
+  messagingSenderId:"64813185174",
+  appId:"1:64813185174:web:290746a3f60e843f76aab7"
+});
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+// State
+let role = null, selectedLang = 'en', roomCode = null, isLive = false;
+let currentUser = null, companyCtx = {}, schedule = [];
+let favorites = JSON.parse(localStorage.getItem('khufu_favs') || '[]');
+let lastScanResult = null;
+let mediaRecorder = null, audioChunks = [], recInterval = null, recSeconds = 0;
+let pendingImageData = null;
+let msgCount = 0, liveStartTime = null;
+let touristPresenceRef = null;
+let translateRecognition = null, isTranslating = false;
+
+const ANTHROPIC_KEY = 'YOUR_ANTHROPIC_API_KEY_HERE';
+
+const langNames = {en:'English',ar:'Arabic',fr:'French',de:'German',es:'Spanish',ja:'Japanese'};
+const langFlags = {en:'🇬🇧',ar:'🇸🇦',fr:'🇫🇷',de:'🇩🇪',es:'🇪🇸',ja:'🇯🇵'};
+
+// Auth
+onAuthStateChanged(auth, u => { currentUser = u; });
+signInAnonymously(auth).catch(console.error);
+
+// Load company context
+window.addEventListener('load', () => {
+  try {
+    const ctx = JSON.parse(localStorage.getItem('khufu_launch_ctx') || '{}');
+    companyCtx = ctx;
+    if (ctx.companyName) document.getElementById('app-title').textContent = ctx.companyName;
+    if (ctx.schedule) schedule = ctx.schedule;
+    applyBranding(ctx.branding || {});
+  } catch(e) {}
+  initWallpapers();
+});
+
+function applyBranding(b) {
+  if (b.primary) document.documentElement.style.setProperty('--gold', b.primary);
+  if (b.accent) document.documentElement.style.setProperty('--gold-dark', b.accent);
+}
+
+// ── LANGUAGE ──
+window.selectLang = (el) => {
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedLang = el.dataset.lang;
+};
+
+window.goToRole = () => {
+  showScreen('scr-role');
+  document.getElementById('role-sub').textContent =
+    selectedLang === 'ar' ? 'اختر دورك للمتابعة' : 'Select your role to continue';
+};
+
+// ── ROLE ──
+window.startAsGuide = () => {
+  role = 'guide';
+  initApp();
+};
+
+window.showJoinSection = () => {
+  document.getElementById('tourist-card').onclick = null;
+  document.getElementById('join-section').style.display = 'block';
+};
+document.getElementById('tourist-card').onclick = () => showJoinSection();
+
+window.hideJoinSection = () => {
+  document.getElementById('join-section').style.display = 'none';
+  document.getElementById('tourist-card').onclick = () => showJoinSection();
+};
+
+window.switchJoinTab = (tab) => {
+  document.querySelectorAll('.join-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='code')||(i===1&&tab==='qr')));
+  document.getElementById('join-tab-code').style.display = tab === 'code' ? '' : 'none';
+  document.getElementById('join-tab-qr').style.display = tab === 'qr' ? '' : 'none';
+};
+
+window.joinRoom = async () => {
+  const code = document.getElementById('room-code-input').value.trim().toUpperCase();
+  if (code.length !== 6) { toast('Enter 6-digit code'); return; }
+  const snap = await get(ref(db, `rooms/${code}`));
+  if (!snap.exists()) { toast('Room not found. Check the code.'); return; }
+  roomCode = code;
+  role = 'tourist';
+  initApp();
+};
+
+// ── INIT APP ──
+function initApp() {
+  showScreen('scr-app');
+  buildTabs();
+  renderSchedule();
+  renderFavorites();
+  document.getElementById('chat-room-code').textContent = roomCode || '—';
+
+  if (role === 'guide') {
+    document.getElementById('guide-live-controls').style.display = 'block';
+  } else {
+    // tourist join the existing room
+    joinAsPresence();
+    listenForMessages();
+    listenForTranslations();
+  }
+}
+
+function buildTabs() {
+  const bar = document.getElementById('tabs-bar');
+  const guideTabs = [
+    {id:'schedule',icon:'🗓️',label:'Schedule'},
+    {id:'chat',icon:'💬',label:'Chat'},
+    {id:'scanner',icon:'🔍',label:'Scanner'},
+    {id:'favorites',icon:'⭐',label:'Saved'},
+    {id:'translate',icon:'🎙️',label:'Translate',locked:true},
+    {id:'tourists',icon:'👥',label:'Tourists',locked:true},
+    {id:'map',icon:'🗺️',label:'Map',locked:true},
+  ];
+  const touristTabs = [
+    {id:'schedule',icon:'🗓️',label:'Schedule'},
+    {id:'chat',icon:'💬',label:'Chat'},
+    {id:'scanner',icon:'🔍',label:'Scanner'},
+    {id:'favorites',icon:'⭐',label:'Saved'},
+    {id:'listen',icon:'🎧',label:'Listen',locked:true},
+    {id:'map',icon:'🗺️',label:'Map',locked:true},
+  ];
+  const tabs = role === 'guide' ? guideTabs : touristTabs;
+  bar.innerHTML = tabs.map(t =>
+    `<button class="tab-btn${t.locked?' locked':''}" id="tabBtn-${t.id}" onclick="switchPanel('${t.id}')">
+      <span class="tab-icon">${t.icon}</span>${t.label}
+    </button>`
+  ).join('');
+  document.getElementById('tabBtn-schedule').classList.add('active');
+}
+
+window.switchPanel = (id) => {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('tabBtn-' + id);
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+};
+
+// ── SCHEDULE ──
+function renderSchedule() {
+  const el = document.getElementById('schedule-content');
+  if (!schedule || !schedule.length) {
+    el.innerHTML = '<div class="empty-state">No schedule available.<br>Your guide will share the itinerary.</div>';
+    return;
+  }
+  const now = new Date();
+  el.innerHTML = schedule.map((day, di) => `
+    <div class="day-label">Day ${di+1}</div>
+    ${(day.stops || []).map((s, si) => {
+      const isNow = di === 0 && si === 0;
+      return `<div class="stop-row${isNow?' now':''}">
+        ${isNow ? '<div class="now-badge">NOW</div>' : ''}
+        <div class="stop-time">${s.time || ''}</div>
+        <div class="stop-dot-wrap">
+          <div class="stop-dot2"></div>
+          ${si < (day.stops.length-1) ? '<div class="stop-line"></div>' : ''}
+        </div>
+        <div class="stop-name">${s.name || 'Unnamed Stop'}</div>
+      </div>`;
+    }).join('')}
+  `).join('');
+}
+
+// ── LIVE SESSION ──
+window.startLive = async () => {
+  if (isLive) { openModal('modal-qr'); return; }
+  roomCode = await generateRoomCode();
+  isLive = true;
+  liveStartTime = Date.now();
+
+  await set(ref(db, `rooms/${roomCode}`), {
+    guideId: currentUser?.uid || 'anon',
+    companyId: companyCtx.companyId || 'demo',
+    startedAt: Date.now(), active: true
+  });
+
+  setBannerLive(true);
+  document.getElementById('chat-room-code').textContent = roomCode;
+  document.getElementById('live-room-code-display').textContent = roomCode;
+  document.getElementById('live-room-badge').textContent = `#${roomCode}`;
+  document.getElementById('live-room-badge').style.display = '';
+  document.getElementById('start-live-btn').textContent = '📡 Live — View Code';
+
+  unlockLiveTabs();
+  listenForMessages();
+  listenForTourists();
+  listenForTranslations();
+  drawQR(roomCode);
+  openModal('modal-qr');
+};
+
+window.endLive = async () => {
+  if (!roomCode) return;
+  await update(ref(db, `rooms/${roomCode}`), { active: false });
+  isLive = false;
+  setBannerLive(false);
+  lockLiveTabs();
+  document.getElementById('start-live-btn').textContent = '🔴 Start Live Session';
+  document.getElementById('live-room-badge').style.display = 'none';
+  closeModal('modal-qr');
+  toast('Live session ended');
+};
+
+async function generateRoomCode() {
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const snap = await get(ref(db, `rooms/${code}`));
+  return snap.exists() ? generateRoomCode() : code;
+}
+
+function setBannerLive(live) {
+  const b = document.getElementById('live-banner');
+  const t = document.getElementById('live-banner-text');
+  b.className = 'live-banner ' + (live ? 'live' : 'offline');
+  t.textContent = live ? 'LIVE' : 'OFFLINE';
+}
+
+function unlockLiveTabs() {
+  document.querySelectorAll('.tab-btn.locked').forEach(b => b.classList.remove('locked'));
+}
+function lockLiveTabs() {
+  const lockIds = role === 'guide' ? ['translate','tourists','map'] : ['listen','map'];
+  lockIds.forEach(id => {
+    const b = document.getElementById('tabBtn-' + id);
+    if (b) b.classList.add('locked');
+  });
+}
+
+function joinAsPresence() {
+  if (!roomCode || !currentUser) return;
+  unlockLiveTabs();
+  touristPresenceRef = ref(db, `rooms/${roomCode}/tourists/${currentUser.uid}`);
+  set(touristPresenceRef, {
+    lang: selectedLang, flag: langFlags[selectedLang],
+    joinedAt: Date.now(), active: true
+  });
+  onDisconnect(touristPresenceRef).remove();
+  setBannerLive(true);
+  document.getElementById('chat-room-code').textContent = roomCode;
+  document.getElementById('live-room-badge').textContent = `#${roomCode}`;
+  document.getElementById('live-room-badge').style.display = '';
+  toast('Joined room ' + roomCode);
+}
+
+// ── CHAT ──
+function listenForMessages() {
+  if (!roomCode) return;
+  const msgsRef = ref(db, `rooms/${roomCode}/messages`);
+  onValue(msgsRef, (snap) => {
+    const data = snap.val();
+    if (!data) return;
+    const msgs = Object.entries(data).map(([k,v]) => ({...v, id:k})).sort((a,b) => a.ts - b.ts);
+    renderMessages(msgs);
+  });
+}
+
+function renderMessages(msgs) {
+  const area = document.getElementById('messages-area');
+  const isSent = (m) => m.uid === currentUser?.uid;
+  area.innerHTML = '<div class="date-sep"><span>Today</span></div>';
+  msgs.forEach(m => {
+    const sent = isSent(m);
+    const div = document.createElement('div');
+    div.className = 'msg ' + (sent ? 'sent' : 'recv');
+    let content = '';
+    if (m.type === 'image') {
+      content = `<img class="msg-image" src="${m.data}" onclick="viewImage('${m.data}')">`;
+      if (m.caption) content += `<div style="font-size:.8rem;margin-top:4px;color:var(--muted)">${m.caption}</div>`;
+    } else if (m.type === 'voice') {
+      content = buildVoicePlayer(m.audio, m.duration);
+    } else {
+      content = escHtml(m.text || '');
+    }
+    div.innerHTML = `
+      ${!sent ? `<div class="msg-sender">${escHtml(m.name||'Tourist')}</div>` : ''}
+      <div class="msg-bubble">${content}</div>
+      <div class="msg-time">${formatTime(m.ts)}</div>`;
+    area.appendChild(div);
+  });
+  msgCount = msgs.length;
+  document.getElementById('adm-msgs').textContent = msgs.length;
+  area.scrollTop = area.scrollHeight;
+}
+
+function buildVoicePlayer(audioData, duration) {
+  const id = 'vp-' + Math.random().toString(36).slice(2);
+  const bars = Array.from({length:20}, (_,i) => {
+    const h = 4 + Math.floor(Math.random() * 20);
+    return `<div class="wave-bar" style="height:${h}px"></div>`;
+  }).join('');
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) el._audio = new Audio(audioData);
+  }, 100);
+  return `<div class="voice-note-player" id="${id}">
+    <button class="play-btn" onclick="toggleVoice('${id}')">▶️</button>
+    <div class="waveform"><div class="wave-bars">${bars}</div></div>
+    <span class="voice-dur">${duration||'0:00'}</span>
+  </div>`;
+}
+
+window.toggleVoice = (id) => {
+  const el = document.getElementById(id);
+  if (!el || !el._audio) return;
+  const btn = el.querySelector('.play-btn');
+  if (el._audio.paused) {
+    el._audio.play();
+    btn.textContent = '⏸️';
+    el._audio.onended = () => { btn.textContent = '▶️'; };
+  } else {
+    el._audio.pause();
+    btn.textContent = '▶️';
+  }
+};
+
+window.viewImage = (src) => {
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer';
+  ov.onclick = () => ov.remove();
+  ov.innerHTML = `<img src="${src}" style="max-width:95vw;max-height:95vh;border-radius:8px">`;
+  document.body.appendChild(ov);
+};
+
+async function sendMessage(payload) {
+  if (!roomCode) { toast('Join or start a live session first'); return; }
+  await push(ref(db, `rooms/${roomCode}/messages`), {
+    ...payload,
+    uid: currentUser?.uid || 'anon',
+    name: role === 'guide' ? (companyCtx.companyName || 'Guide') : `Tourist (${langFlags[selectedLang]})`,
+    ts: Date.now()
+  });
+}
+
+window.onMsgInput = (el) => {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  document.getElementById('mic-send-btn').textContent = el.value.trim() ? '➤' : '🎤';
+};
+
+window.onMicSendClick = () => {
+  const input = document.getElementById('msg-input');
+  if (input.value.trim()) {
+    sendMessage({ type:'text', text: input.value.trim() });
+    input.value = ''; input.style.height = 'auto';
+    document.getElementById('mic-send-btn').textContent = '🎤';
+  } else {
+    startRecording();
+  }
+};
+
+window.togglePlusMenu = () => {
+  document.getElementById('plus-menu').classList.toggle('show');
+};
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#plus-menu') && !e.target.closest('.plus-btn'))
+    document.getElementById('plus-menu').classList.remove('show');
+});
+
+window.triggerImageUpload = () => document.getElementById('chat-img-input').click();
+
+window.onChatImageSelected = (input) => {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    pendingImageData = e.target.result;
+    document.getElementById('img-preview-thumb').src = pendingImageData;
+    document.getElementById('img-preview-bar').classList.add('show');
+    document.getElementById('chat-input-bar').style.display = 'none';
+  };
+  reader.readAsDataURL(input.files[0]);
+  input.value = '';
+};
+
+window.cancelImagePreview = () => {
+  pendingImageData = null;
+  document.getElementById('img-preview-bar').classList.remove('show');
+  document.getElementById('chat-input-bar').style.display = '';
+};
+
+window.sendImageMsg = async () => {
+  if (!pendingImageData) return;
+  const caption = document.getElementById('img-caption').value.trim();
+  await sendMessage({ type:'image', data: pendingImageData, caption });
+  cancelImagePreview();
+};
+
+// Voice recording
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+    mediaRecorder = new MediaRecorder(stream, { mimeType });
+    audioChunks = []; recSeconds = 0;
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.start(100);
+    document.getElementById('chat-input-bar').style.display = 'none';
+    document.getElementById('rec-bar').classList.add('show');
+    recInterval = setInterval(() => {
+      recSeconds++;
+      const m = Math.floor(recSeconds/60), s = recSeconds % 60;
+      document.getElementById('rec-timer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    }, 1000);
+  } catch(e) { toast('Microphone access denied'); }
+}
+
+window.cancelRecording = () => {
+  if (mediaRecorder) { mediaRecorder.stop(); mediaRecorder.stream?.getTracks().forEach(t => t.stop()); }
+  clearInterval(recInterval);
+  document.getElementById('rec-bar').classList.remove('show');
+  document.getElementById('chat-input-bar').style.display = '';
+};
+
+window.stopAndSendRecording = () => {
+  if (!mediaRecorder) return;
+  mediaRecorder.onstop = async () => {
+    const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dur = `${Math.floor(recSeconds/60)}:${(recSeconds%60).toString().padStart(2,'0')}`;
+      await sendMessage({ type:'voice', audio: e.target.result, duration: dur });
+    };
+    reader.readAsDataURL(blob);
+    mediaRecorder.stream?.getTracks().forEach(t => t.stop());
+  };
+  mediaRecorder.stop();
+  clearInterval(recInterval);
+  document.getElementById('rec-bar').classList.remove('show');
+  document.getElementById('chat-input-bar').style.display = '';
+};
+
+// ── TOURISTS ──
+function listenForTourists() {
+  if (!roomCode) return;
+  onValue(ref(db, `rooms/${roomCode}/tourists`), (snap) => {
+    const data = snap.val() || {};
+    const tourists = Object.entries(data);
+    renderTourists(tourists);
+    document.getElementById('adm-tourists').textContent = tourists.length;
+  });
+}
+
+function renderTourists(tourists) {
+  const el = document.getElementById('tourists-content');
+  if (!tourists.length) { el.innerHTML = '<div class="empty-state">No tourists connected yet.</div>'; return; }
+  el.innerHTML = tourists.map(([uid,t]) =>
+    `<div class="tourist-row">
+      <div class="tourist-flag">${t.flag||'🏳️'}</div>
+      <div class="tourist-name">Tourist (${langNames[t.lang]||t.lang||'Unknown'})</div>
+      <div class="tourist-online"></div>
+    </div>`
+  ).join('');
+  const langs = new Set(tourists.map(([,t]) => t.lang)).size;
+  document.getElementById('adm-langs').textContent = langs;
+}
+
+// ── SCANNER ──
+window.triggerScan = () => document.getElementById('scan-input').click();
+
+window.onScanImage = async (input) => {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const b64 = e.target.result;
+    document.getElementById('scan-preview').src = b64;
+    document.getElementById('scan-preview').style.display = 'block';
+    document.getElementById('scanning-loader').style.display = 'block';
+    document.getElementById('scan-result').style.display = 'none';
+    const pureB64 = b64.split(',')[1];
+    const mediaType = input.files[0].type || 'image/jpeg';
+    try {
+      const result = await identifyMonument(pureB64, mediaType);
+      lastScanResult = result;
+      showScanResult(result);
+    } catch(e) {
+      document.getElementById('scanning-loader').style.display = 'none';
+      toast('Could not identify monument. Try a clearer photo.');
+    }
+  };
+  reader.readAsDataURL(input.files[0]);
+  input.value = '';
+};
+
+async function identifyMonument(b64, mediaType) {
+  const langName = langNames[selectedLang] || 'English';
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key': ANTHROPIC_KEY,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body: JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:1000,
+      system:`You are an expert Egyptologist and world heritage monument identifier. 
+Identify the monument or historical site in the image and respond ONLY in ${langName} language.
+Return ONLY valid JSON, no markdown, no explanation:
+{"name":"monument name","era":"historical period/dynasty","description":"2-3 sentence engaging description","fun_fact":"one surprising fun fact","visitor_tip":"one practical visitor tip","emoji":"single relevant emoji"}`,
+      messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:mediaType,data:b64}},
+        {type:'text',text:'Identify this monument and respond in ' + langName + ' as specified.'}
+      ]}]
+    })
+  });
+  const data = await resp.json();
+  const text = data.content[0].text;
+  return JSON.parse(text.replace(/```json?|```/g,'').trim());
+}
+
+function showScanResult(r) {
+  document.getElementById('scanning-loader').style.display = 'none';
+  document.getElementById('scan-result').style.display = 'block';
+  document.getElementById('res-name').textContent = (r.emoji||'🏛️') + ' ' + (r.name||'Unknown Monument');
+  document.getElementById('res-era').textContent = r.era || '';
+  document.getElementById('res-desc').textContent = r.description || '';
+  document.getElementById('res-fact').innerHTML = '💡 ' + (r.fun_fact||'');
+  document.getElementById('res-tip').innerHTML = '✅ ' + (r.visitor_tip||'');
+}
+
+window.resetScanner = () => {
+  document.getElementById('scan-preview').style.display = 'none';
+  document.getElementById('scan-result').style.display = 'none';
+  lastScanResult = null;
+};
+
+window.saveToFavs = () => {
+  if (!lastScanResult) return;
+  favorites.unshift({ ...lastScanResult, savedAt: Date.now() });
+  localStorage.setItem('khufu_favs', JSON.stringify(favorites));
+  renderFavorites();
+  toast('Saved to favorites ⭐');
+};
+
+function renderFavorites() {
+  const el = document.getElementById('favs-content');
+  if (!favorites.length) { el.innerHTML = '<div class="empty-state">⭐ No saved monuments yet.<br>Scan a monument and tap Save.</div>'; return; }
+  el.innerHTML = favorites.map((f,i) =>
+    `<div class="fav-card">
+      <div class="fav-icon">${f.emoji||'🏛️'}</div>
+      <div class="fav-info">
+        <div class="fav-name">${f.name}</div>
+        <div class="fav-era">${f.era||''}</div>
+      </div>
+      <button class="fav-del" onclick="removeFav(${i})">🗑️</button>
+    </div>`
+  ).join('');
+}
+
+window.removeFav = (i) => {
+  favorites.splice(i, 1);
+  localStorage.setItem('khufu_favs', JSON.stringify(favorites));
+  renderFavorites();
+};
+
+// ── TRANSLATE ──
+window.toggleTranslateMic = async () => {
+  if (isTranslating) { stopTranslating(); return; }
+  isTranslating = true;
+  const btn = document.getElementById('translate-mic');
+  const status = document.getElementById('translate-status');
+  btn.classList.add('recording');
+  btn.textContent = '⏹';
+  status.textContent = 'Listening...';
+
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    translateRecognition = new SR();
+    translateRecognition.continuous = true;
+    translateRecognition.interimResults = true;
+    translateRecognition.lang = 'ar-EG';
+    translateRecognition.onresult = async (e) => {
+      const final = Array.from(e.results).filter(r=>r.isFinal).map(r=>r[0].transcript).join(' ');
+      if (final.trim()) {
+        document.getElementById('translate-orig').style.display = 'block';
+        document.getElementById('translate-orig-text').textContent = final;
+        await translateAndBroadcast(final);
+      }
+    };
+    translateRecognition.start();
+  } else {
+    toast('Speech recognition not supported in this browser');
+    stopTranslating();
+  }
+};
+
+function stopTranslating() {
+  isTranslating = false;
+  if (translateRecognition) { translateRecognition.stop(); translateRecognition = null; }
+  const btn = document.getElementById('translate-mic');
+  btn.classList.remove('recording');
+  btn.textContent = '🎤';
+  document.getElementById('translate-status').textContent = 'Tap mic to start speaking';
+}
+
+async function translateAndBroadcast(text) {
+  if (!roomCode) return;
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':ANTHROPIC_KEY,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body: JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:500,
+      system:'You are a professional translator. Translate the given text to all 6 languages and return ONLY valid JSON with keys: en,ar,fr,de,es,ja. No markdown.',
+      messages:[{role:'user',content:'Translate: ' + text}]
+    })
+  });
+  const data = await resp.json();
+  try {
+    const translations = JSON.parse(data.content[0].text.replace(/```json?|```/g,'').trim());
+    await set(ref(db, `rooms/${roomCode}/translation`), {
+      original: text, translations, ts: Date.now()
+    });
+    document.getElementById('translate-trans').style.display = 'block';
+    document.getElementById('translate-lang-tag').textContent = 'All Languages';
+    document.getElementById('translate-trans-text').textContent = Object.entries(translations).map(([l,t])=>`${langFlags[l]} ${t}`).join('\n');
+  } catch(e) { console.error('Translation parse error', e); }
+}
+
+function listenForTranslations() {
+  if (!roomCode) return;
+  onValue(ref(db, `rooms/${roomCode}/translation`), (snap) => {
+    const data = snap.val();
+    if (!data || role !== 'tourist') return;
+    const myTrans = data.translations?.[selectedLang];
+    if (myTrans) {
+      document.getElementById('listen-result').style.display = 'block';
+      document.getElementById('listen-lang-tag').textContent = langFlags[selectedLang] + ' ' + langNames[selectedLang];
+      document.getElementById('listen-result-text').textContent = myTrans;
+      document.getElementById('listen-msg').style.display = 'none';
+    }
+  });
+}
+
+// ── ADMIN ──
+window.openAdmin = () => {
+  document.getElementById('adm-duration').textContent = liveStartTime
+    ? Math.floor((Date.now() - liveStartTime) / 60000) + 'm' : '0m';
+  document.getElementById('admin-panel').classList.add('show');
+  renderAdminSchedule();
+};
+window.closeAdmin = () => document.getElementById('admin-panel').classList.remove('show');
+
+window.switchAdminTab = (t) => {
+  document.querySelectorAll('.admin-tab').forEach((el,i) => el.classList.toggle('active', (i===0&&t==='stats')||(i===1&&t==='schedule')));
+  document.getElementById('admin-tab-stats').style.display = t==='stats'?'':'none';
+  document.getElementById('admin-tab-schedule').style.display = t==='schedule'?'':'none';
+};
+
+function renderAdminSchedule() {
+  const el = document.getElementById('admin-schedule-editor');
+  el.innerHTML = (schedule || []).map((day,di) => `
+    <div style="margin-bottom:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <div style="padding:10px 14px;background:var(--surface2);color:var(--gold);font-size:.85rem;font-weight:600">Day ${di+1}</div>
+      ${(day.stops||[]).map((s,si) => `
+        <div style="display:flex;gap:8px;padding:8px 14px;border-top:1px solid var(--border);align-items:center">
+          <input value="${s.name||''}" placeholder="Stop name" style="flex:1;background:transparent;border:none;color:var(--text);font-size:.85rem;outline:none" onchange="schedule[${di}].stops[${si}].name=this.value">
+          <input value="${s.time||''}" placeholder="HH:MM" style="width:60px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px;font-size:.75rem;outline:none" onchange="schedule[${di}].stops[${si}].time=this.value">
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+window.saveAdminSchedule = () => {
+  localStorage.setItem('khufu_launch_ctx', JSON.stringify({ ...companyCtx, schedule }));
+  renderSchedule();
+  toast('Schedule updated ✓');
+};
+
+// ── WALLPAPER ──
+const wallpapers = [
+  {bg:'linear-gradient(135deg,#0a0800,#1a1200)',label:'Dark Gold'},
+  {bg:'linear-gradient(135deg,#000820,#001040)',label:'Blue Night'},
+  {bg:'linear-gradient(135deg,#0a0008,#200018)',label:'Purple'},
+  {bg:'linear-gradient(135deg,#080a00,#181a00)',label:'Forest'},
+  {bg:'linear-gradient(135deg,#0a0000,#200000)',label:'Red Sand'},
+  {bg:'linear-gradient(135deg,#000000,#111111)',label:'Pure Black'},
+];
+
+function initWallpapers() {
+  const grid = document.getElementById('wp-grid');
+  grid.innerHTML = wallpapers.map((w,i) =>
+    `<div class="wp-opt${i===0?' sel':''}" onclick="selectWallpaper(${i})" title="${w.label}">
+      <div style="background:${w.bg};height:100%"></div>
+    </div>`
+  ).join('');
+}
+
+window.selectWallpaper = (i) => {
+  document.querySelectorAll('.wp-opt').forEach((el,j) => el.classList.toggle('sel', i===j));
+  document.getElementById('chat-bg-el').style.backgroundImage = 'none';
+  document.getElementById('chat-bg-el').style.background = wallpapers[i].bg;
+};
+
+window.setCustomWallpaper = (input) => {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('chat-bg-el').style.backgroundImage = `url('${e.target.result}')`;
+    document.getElementById('chat-bg-el').style.backgroundSize = 'cover';
+  };
+  reader.readAsDataURL(input.files[0]);
+};
+
+window.setDarkness = (val) => {
+  document.getElementById('darkness-val').textContent = val + '%';
+  document.getElementById('chat-overlay-el').style.background = `rgba(0,0,0,${val/100})`;
+};
+
+// ── QR code generator (simple canvas) ──
+function drawQR(code) {
+  const canvas = document.getElementById('qr-canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,160,160);
+  ctx.fillStyle = '#000'; ctx.font = '20px monospace';
+  ctx.textAlign = 'center';
+  // Simple visual representation
+  ctx.fillText(code.slice(0,3), 80, 70);
+  ctx.fillText(code.slice(3), 80, 100);
+  ctx.font = '11px sans-serif'; ctx.fillStyle = '#333';
+  ctx.fillText('Khufu Guide', 80, 130);
+  ctx.fillStyle = '#C9A84C'; ctx.font = '30px sans-serif';
+  ctx.fillText('𓂀', 80, 44);
+}
+
+// ── HELPERS ──
+window.openModal = (id) => document.getElementById(id).classList.add('show');
+window.closeModal = (id) => document.getElementById(id).classList.remove('show');
+
+window.showScreen = (id) => {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+};
+
+window.toast = (msg) => {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+};
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+</script>
+</body>
+</html>
