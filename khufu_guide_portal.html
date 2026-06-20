@@ -545,6 +545,7 @@ window.launchTourApp = async (gid) => {
   if (!g) return;
   const ctx = {
     role:'guide', guideId:cu.uid, groupId:gid,
+    guideName: guideData.name || 'Guide',
     groupCode:g.groupCode, groupName:g.name,
     companyId:guideData.companyId, companyName:guideData.companyName,
     schedule:g.schedule||[]
