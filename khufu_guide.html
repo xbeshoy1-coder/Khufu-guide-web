@@ -644,8 +644,16 @@ function initApp() {
 
   if (role === 'guide') {
     document.getElementById('guide-live-controls').style.display = 'block';
+    // Guide: chat and tourists available immediately using permanent group code
+    if (roomCode) {
+      listenForMessages();
+      listenForTourists();
+      listenForTranslations();
+      setBannerLive(false); // starts offline, goes live when they press Start Live
+      document.getElementById('chat-room-code').textContent = roomCode;
+    }
   } else {
-    // tourist join the existing room
+    // Tourist: join room as presence and listen
     joinAsPresence();
     listenForMessages();
     listenForTranslations();
@@ -717,15 +725,27 @@ function renderSchedule() {
 // ── LIVE SESSION ──
 window.startLive = async () => {
   if (isLive) { openModal('modal-qr'); return; }
-  roomCode = await generateRoomCode();
+  // Use the permanent group code set when guide opened the app — never generate a new one
+  if (!roomCode) {
+    toast('No group code found. Please relaunch from the Guide Portal.');
+    return;
+  }
   isLive = true;
   liveStartTime = Date.now();
 
-  await set(ref(db, `rooms/${roomCode}`), {
+  // Update the existing room to active (room was created when group was created)
+  await update(ref(db, `rooms/${roomCode}`), {
     guideId: currentUser?.uid || 'anon',
-    companyId: companyCtx.companyId || 'demo',
+    companyId: companyCtx.companyId || '',
     startedAt: Date.now(), active: true
   });
+
+  // Mark group as live in guide's data
+  if (companyCtx.guideId && companyCtx.groupId) {
+    await update(ref(db, `guides/${companyCtx.guideId}/groups/${companyCtx.groupId}`), {
+      isLive: true, startedAt: Date.now()
+    });
+  }
 
   setBannerLive(true);
   document.getElementById('chat-room-code').textContent = roomCode;
@@ -745,6 +765,12 @@ window.startLive = async () => {
 window.endLive = async () => {
   if (!roomCode) return;
   await update(ref(db, `rooms/${roomCode}`), { active: false });
+  // Mark group as offline
+  if (companyCtx.guideId && companyCtx.groupId) {
+    await update(ref(db, `guides/${companyCtx.guideId}/groups/${companyCtx.groupId}`), {
+      isLive: false
+    });
+  }
   isLive = false;
   setBannerLive(false);
   lockLiveTabs();
@@ -874,11 +900,14 @@ window.viewImage = (src) => {
 };
 
 async function sendMessage(payload) {
-  if (!roomCode) { toast('Join or start a live session first'); return; }
+  if (!roomCode) { toast('No group code. Relaunch from Guide Portal.'); return; }
+  const senderName = role === 'guide'
+    ? (companyCtx.guideName || companyCtx.companyName || 'Guide')
+    : `Tourist ${langFlags[selectedLang]}`;
   await push(ref(db, `rooms/${roomCode}/messages`), {
     ...payload,
     uid: currentUser?.uid || 'anon',
-    name: role === 'guide' ? (companyCtx.companyName || 'Guide') : `Tourist (${langFlags[selectedLang]})`,
+    name: senderName,
     ts: Date.now()
   });
 }
