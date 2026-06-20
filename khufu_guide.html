@@ -548,14 +548,21 @@ const langFlags = {en:'🇬🇧',ar:'🇸🇦',fr:'🇫🇷',de:'🇩🇪',es:'�
 onAuthStateChanged(auth, u => { currentUser = u; });
 signInAnonymously(auth).catch(console.error);
 
-// Load company context
+// Load launch context (set by guide portal)
 window.addEventListener('load', () => {
   try {
     const ctx = JSON.parse(localStorage.getItem('khufu_launch_ctx') || '{}');
     companyCtx = ctx;
     if (ctx.companyName) document.getElementById('app-title').textContent = ctx.companyName;
     if (ctx.schedule) schedule = ctx.schedule;
+    if (ctx.groupCode) roomCode = ctx.groupCode;
     applyBranding(ctx.branding || {});
+    // If launched as guide with a groupCode, skip role screen and go straight in
+    if (ctx.role === 'guide' && ctx.groupCode) {
+      role = 'guide';
+      selectedLang = 'en';
+      setTimeout(() => initApp(), 100);
+    }
   } catch(e) {}
   initWallpapers();
 });
@@ -602,12 +609,28 @@ window.switchJoinTab = (tab) => {
 };
 
 window.joinRoom = async () => {
-  const code = document.getElementById('room-code-input').value.trim().toUpperCase();
+  const code = document.getElementById('room-code-input').value.trim();
   if (code.length !== 6) { toast('Enter 6-digit code'); return; }
   const snap = await get(ref(db, `rooms/${code}`));
   if (!snap.exists()) { toast('Room not found. Check the code.'); return; }
+  const room = snap.val();
   roomCode = code;
   role = 'tourist';
+  // Load group schedule + name from guide's data
+  if (room.guideId && room.groupId) {
+    const gSnap = await get(ref(db, `guides/${room.guideId}/groups/${room.groupId}`));
+    if (gSnap.exists()) {
+      const g = gSnap.val();
+      schedule = g.schedule || [];
+      if (g.name) companyCtx.groupName = g.name;
+      if (room.companyId) {
+        const coSnap = await get(ref(db, `companies/${room.companyId}/branding`));
+        if (coSnap.exists()) applyBranding(coSnap.val());
+        const coNameSnap = await get(ref(db, `companies/${room.companyId}/name`));
+        if (coNameSnap.exists()) document.getElementById('app-title').textContent = coNameSnap.val();
+      }
+    }
+  }
   initApp();
 };
 
