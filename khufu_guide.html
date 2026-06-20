@@ -345,6 +345,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;he
     <div class="live-dot"></div>
     <span id="live-banner-text">OFFLINE</span>
     <span id="live-room-badge" style="display:none;font-size:.75rem;color:var(--gold-light);margin-left:8px"></span>
+    <button onclick="exitSession()" style="all:unset;cursor:pointer;margin-left:auto;font-size:.7rem;color:var(--muted);padding:2px 10px;border:1px solid var(--border);border-radius:20px;letter-spacing:.5px" title="Exit session">✕ Exit</button>
   </div>
 
   <div class="tabs-bar" id="tabs-bar"></div>
@@ -1339,6 +1340,24 @@ function drawQR(code) {
 }
 
 // ── HELPERS ──
+window.exitSession = () => {
+  // Clean up presence if tourist
+  if (touristPresenceRef) {
+    remove(touristPresenceRef).catch(()=>{});
+    touristPresenceRef = null;
+  }
+  // Clear guide context from localStorage
+  localStorage.removeItem('khufu_launch_ctx');
+  // Reset all state
+  role = null; roomCode = null; isLive = false;
+  schedule = []; companyCtx = {};
+  selectedLang = 'en';
+  // Return to splash screen
+  showScreen('scr-splash');
+  // Reset language selection
+  document.querySelectorAll('.lang-btn').forEach((b,i) => b.classList.toggle('sel', i===0));
+};
+
 window.openModal = (id) => document.getElementById(id).classList.add('show');
 window.closeModal = (id) => document.getElementById(id).classList.remove('show');
 
