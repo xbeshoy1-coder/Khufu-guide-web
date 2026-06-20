@@ -5,29 +5,58 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Khufu Guide</title>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:#000;color:#EDE0B8;font-family:'Segoe UI',sans-serif;height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;
-    background:radial-gradient(ellipse at center,#1a1200 0%,#000 70%)}
-  .ankh{font-size:70px;margin-bottom:20px}
-  h1{font-size:2.4rem;color:#C9A84C;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
-  p{color:#7A6830;margin-bottom:40px;font-size:1rem}
-  .btns{display:flex;flex-direction:column;gap:14px;width:100%;max-width:280px}
-  a.btn{display:block;padding:16px;border-radius:50px;font-size:1rem;font-weight:700;text-decoration:none;letter-spacing:1px;text-transform:uppercase;transition:all .2s;text-align:center}
-  a.btn-gold{background:linear-gradient(135deg,#C9A84C,#8B6914);color:#000}
-  a.btn-gold:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(201,168,76,.4)}
-  a.btn-outline{border:1px solid #C9A84C;color:#C9A84C}
-  a.btn-outline:hover{background:rgba(201,168,76,.1)}
-  .sub{color:#7A6830;font-size:.75rem;margin-top:30px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#EDE0B8;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:30px 20px;background:radial-gradient(ellipse at center,#1a1200 0%,#000 70%)}
+.ankh{font-size:66px;margin-bottom:14px}
+h1{font-size:2.2rem;color:#C9A84C;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px}
+.tagline{color:#7A6830;margin-bottom:44px;font-size:.92rem;letter-spacing:.5px}
+.gates{display:flex;flex-direction:column;gap:14px;width:100%;max-width:320px}
+.gate{display:block;text-decoration:none;border-radius:14px;padding:18px 20px;transition:all .2s;text-align:left;position:relative;overflow:hidden}
+.gate:hover{transform:translateY(-2px)}
+.gate-icon{font-size:1.8rem;margin-bottom:8px;display:block}
+.gate-title{font-size:.95rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:3px}
+.gate-desc{font-size:.76rem;opacity:.7;display:block;line-height:1.5}
+.gate-arrow{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:1.1rem;opacity:.5}
+.gate-company{background:linear-gradient(135deg,#C9A84C,#8B6914);color:#000}
+.gate-company .gate-desc{opacity:.6}
+.gate-guide{background:#0D0D00;border:1px solid #2A2000;color:#EDE0B8}
+.gate-guide:hover{border-color:#C9A84C}
+.gate-tourist{background:#0D0D00;border:1px solid #2A2000;color:#EDE0B8}
+.gate-tourist:hover{border-color:#C9A84C}
+.divider{color:#2A2000;font-size:1.2rem;letter-spacing:2px;margin:2px 0}
+.footer{color:#7A6830;font-size:.72rem;margin-top:36px}
 </style>
 </head>
 <body>
   <div class="ankh">𓂀</div>
   <h1>Khufu Guide</h1>
-  <p>Smart Tour Guide Platform for Egypt</p>
-  <div class="btns">
-    <a href="khufu_portal.html" class="btn btn-gold">🏢 Company Portal</a>
-    <a href="khufu_guide.html" class="btn btn-outline">🎒 Open Tour App</a>
+  <p class="tagline">Smart Tour Guide Platform for Egypt</p>
+
+  <div class="gates">
+    <a href="khufu_portal.html" class="gate gate-company">
+      <span class="gate-icon">🏢</span>
+      <span class="gate-title">Company Portal</span>
+      <span class="gate-desc">Manage guides, view group stats & branding</span>
+      <span class="gate-arrow">→</span>
+    </a>
+
+    <div class="divider">· · ·</div>
+
+    <a href="khufu_guide_portal.html" class="gate gate-guide">
+      <span class="gate-icon">🏛️</span>
+      <span class="gate-title">Tour Guide Portal</span>
+      <span class="gate-desc">Create groups, manage schedule & run live sessions</span>
+      <span class="gate-arrow">→</span>
+    </a>
+
+    <a href="khufu_guide.html" class="gate gate-tourist">
+      <span class="gate-icon">🎒</span>
+      <span class="gate-title">Tourist App</span>
+      <span class="gate-desc">Enter your group code to join the tour</span>
+      <span class="gate-arrow">→</span>
+    </a>
   </div>
-  <div class="sub">© 2025 Khufu Guide · Smart Tourism Platform</div>
+
+  <div class="footer">© 2025 Khufu Guide · Smart Tourism Platform</div>
 </body>
 </html>
