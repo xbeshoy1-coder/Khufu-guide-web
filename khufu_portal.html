@@ -5,920 +5,581 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Khufu Guide — Company Portal</title>
 <style>
-  :root {
-    --bg: #000000;
-    --gold: #C9A84C;
-    --gold-light: #E8C97A;
-    --gold-dark: #8B6914;
-    --text: #EDE0B8;
-    --muted: #7A6830;
-    --surface: #0D0D00;
-    --surface2: #1A1500;
-    --border: #2A2000;
-    --danger: #cc4444;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',sans-serif; min-height:100vh; }
-  
-  /* Scrollbar */
-  ::-webkit-scrollbar { width:6px; }
-  ::-webkit-scrollbar-track { background:#111; }
-  ::-webkit-scrollbar-thumb { background:var(--gold-dark); border-radius:3px; }
-
-  /* Screens */
-  .screen { display:none; min-height:100vh; }
-  .screen.active { display:flex; flex-direction:column; }
-
-  /* Landing */
-  #screen-landing {
-    align-items:center; justify-content:center;
-    background: radial-gradient(ellipse at center, #1a1200 0%, #000 70%);
-    text-align:center; padding:40px 20px;
-  }
-  .logo-area { margin-bottom:40px; }
-  .logo-area .ankh { font-size:60px; margin-bottom:16px; }
-  .logo-area h1 { font-size:2.4rem; color:var(--gold); letter-spacing:3px; text-transform:uppercase; }
-  .logo-area p { color:var(--muted); margin-top:8px; font-size:1rem; letter-spacing:1px; }
-  .landing-btns { display:flex; flex-direction:column; gap:14px; width:100%; max-width:320px; }
-  .btn-primary {
-    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-    color:#000; border:none; padding:16px 32px; border-radius:50px;
-    font-size:1rem; font-weight:700; cursor:pointer; letter-spacing:1px;
-    transition:all .2s; text-transform:uppercase;
-  }
-  .btn-primary:hover { transform:translateY(-2px); box-shadow:0 4px 20px rgba(201,168,76,.4); }
-  .btn-outline {
-    background:transparent; color:var(--gold); border:1px solid var(--gold);
-    padding:14px 32px; border-radius:50px; font-size:1rem; cursor:pointer;
-    letter-spacing:1px; transition:all .2s; text-transform:uppercase;
-  }
-  .btn-outline:hover { background:rgba(201,168,76,.1); }
-  .landing-divider { color:var(--muted); font-size:.85rem; }
-
-  /* Auth screens */
-  #screen-login, #screen-register {
-    align-items:center; justify-content:center;
-    background: radial-gradient(ellipse at center, #1a1200 0%, #000 70%);
-    padding:20px;
-  }
-  .auth-card {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:16px; padding:40px 32px; width:100%; max-width:420px;
-  }
-  .auth-card h2 { color:var(--gold); font-size:1.6rem; margin-bottom:6px; }
-  .auth-card p { color:var(--muted); font-size:.9rem; margin-bottom:28px; }
-  .form-group { margin-bottom:18px; }
-  .form-group label { display:block; color:var(--muted); font-size:.8rem; margin-bottom:6px; letter-spacing:.5px; text-transform:uppercase; }
-  .form-group input {
-    width:100%; background:var(--surface2); border:1px solid var(--border);
-    color:var(--text); padding:12px 16px; border-radius:10px; font-size:.95rem;
-    outline:none; transition:border-color .2s;
-  }
-  .form-group input:focus { border-color:var(--gold); }
-  .auth-link { text-align:center; margin-top:20px; color:var(--muted); font-size:.85rem; }
-  .auth-link span { color:var(--gold); cursor:pointer; text-decoration:underline; }
-  .back-btn { all:unset; color:var(--muted); cursor:pointer; font-size:.85rem; margin-bottom:20px; display:flex; align-items:center; gap:6px; }
-  .back-btn:hover { color:var(--gold); }
-  .logo-upload-area {
-    border:2px dashed var(--border); border-radius:10px; padding:20px;
-    text-align:center; cursor:pointer; transition:border-color .2s;
-    color:var(--muted); font-size:.85rem;
-  }
-  .logo-upload-area:hover { border-color:var(--gold); }
-  .logo-upload-area img { max-height:60px; max-width:100%; object-fit:contain; }
-  #logo-file { display:none; }
-
-  /* Dashboard */
-  #screen-dashboard { background:var(--bg); }
-  .dash-header {
-    background:var(--surface); border-bottom:1px solid var(--border);
-    padding:16px 24px; display:flex; align-items:center; justify-content:space-between;
-    position:sticky; top:0; z-index:10;
-  }
-  .dash-header .brand { display:flex; align-items:center; gap:12px; }
-  .dash-header .brand-logo { width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid var(--gold); }
-  .dash-header .brand-logo-placeholder { width:36px; height:36px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:16px; color:#000; font-weight:700; }
-  .dash-header h2 { font-size:1rem; color:var(--gold); }
-  .dash-header p { font-size:.75rem; color:var(--muted); }
-  .header-actions { display:flex; gap:8px; align-items:center; }
-  .icon-btn { all:unset; cursor:pointer; color:var(--muted); font-size:1.2rem; padding:6px; border-radius:8px; }
-  .icon-btn:hover { color:var(--gold); background:var(--surface2); }
-
-  .dash-tabs {
-    display:flex; overflow-x:auto; border-bottom:1px solid var(--border);
-    background:var(--surface); padding:0 16px; gap:0;
-  }
-  .dash-tab {
-    all:unset; padding:14px 20px; color:var(--muted); font-size:.85rem; cursor:pointer;
-    border-bottom:2px solid transparent; white-space:nowrap; transition:all .2s;
-  }
-  .dash-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
-  .dash-tab:hover { color:var(--text); }
-
-  .dash-content { padding:24px; max-width:800px; margin:0 auto; }
-
-  /* Overview tab */
-  .trial-banner {
-    background: linear-gradient(135deg, #1a1200, #2A1F00);
-    border:1px solid var(--gold-dark); border-radius:12px; padding:20px 24px;
-    display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;
-    flex-wrap:wrap; gap:12px;
-  }
-  .trial-banner .days { font-size:2.5rem; font-weight:700; color:var(--gold); }
-  .trial-banner .label { color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:1px; }
-  .launch-btn {
-    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-    color:#000; border:none; padding:14px 28px; border-radius:50px;
-    font-size:1rem; font-weight:700; cursor:pointer; letter-spacing:1px;
-    text-transform:uppercase; transition:all .2s;
-  }
-  .launch-btn:hover { transform:scale(1.04); box-shadow:0 4px 20px rgba(201,168,76,.5); }
-  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:16px; margin-bottom:24px; }
-  .stat-card {
-    background:var(--surface); border:1px solid var(--border); border-radius:12px;
-    padding:20px; text-align:center;
-  }
-  .stat-card .val { font-size:2rem; font-weight:700; color:var(--gold); }
-  .stat-card .lbl { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-top:4px; }
-
-  /* Schedule tab */
-  .schedule-editor { }
-  .day-block { background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:16px; overflow:hidden; }
-  .day-header {
-    padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
-    background:var(--surface2); border-bottom:1px solid var(--border);
-  }
-  .day-header h3 { color:var(--gold); font-size:.95rem; }
-  .stop-item {
-    padding:12px 18px; display:flex; align-items:center; gap:12px;
-    border-bottom:1px solid var(--border);
-  }
-  .stop-item:last-child { border-bottom:none; }
-  .stop-dot { width:8px; height:8px; border-radius:50%; background:var(--gold); flex-shrink:0; }
-  .stop-item input {
-    flex:1; background:transparent; border:none; color:var(--text);
-    font-size:.9rem; outline:none;
-  }
-  .stop-time-input {
-    width:70px; background:var(--surface2); border:1px solid var(--border);
-    color:var(--muted); border-radius:6px; padding:4px 8px; font-size:.8rem;
-    outline:none;
-  }
-  .del-btn { all:unset; cursor:pointer; color:var(--muted); font-size:1rem; padding:4px; }
-  .del-btn:hover { color:var(--danger); }
-  .add-stop-btn {
-    all:unset; cursor:pointer; color:var(--gold); font-size:.85rem;
-    padding:12px 18px; display:block; text-align:center; width:100%;
-    border-top:1px solid var(--border);
-  }
-  .add-stop-btn:hover { background:rgba(201,168,76,.05); }
-  .add-day-btn {
-    all:unset; cursor:pointer; display:flex; align-items:center; gap:8px;
-    color:var(--gold); font-size:.9rem; border:1px dashed var(--gold-dark);
-    border-radius:12px; padding:14px 20px; width:100%; justify-content:center;
-    transition:all .2s;
-  }
-  .add-day-btn:hover { background:rgba(201,168,76,.05); }
-  .save-btn {
-    background:var(--gold); color:#000; border:none; padding:12px 28px;
-    border-radius:50px; font-size:.9rem; font-weight:700; cursor:pointer;
-    margin-top:16px; transition:all .2s;
-  }
-  .save-btn:hover { background:var(--gold-light); }
-
-  /* Branding tab */
-  .branding-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-  @media(max-width:500px) { .branding-grid { grid-template-columns:1fr; } }
-  .branding-section { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; }
-  .branding-section h3 { color:var(--gold); font-size:.9rem; margin-bottom:16px; text-transform:uppercase; letter-spacing:.5px; }
-  .color-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
-  .color-row label { flex:1; color:var(--muted); font-size:.85rem; }
-  .color-row input[type=color] { width:40px; height:32px; border:1px solid var(--border); border-radius:6px; background:var(--surface2); cursor:pointer; padding:2px; }
-  .preview-card {
-    border-radius:12px; padding:20px; text-align:center; margin-top:16px;
-    border:1px solid var(--border); transition:all .3s;
-  }
-  .preview-card .preview-logo { width:50px; height:50px; border-radius:50%; object-fit:cover; margin:0 auto 10px; display:block; }
-  .preview-card h4 { font-size:1rem; margin-bottom:4px; }
-  .preview-card p { font-size:.8rem; opacity:.7; }
-
-  /* Guides tab */
-  .guide-item {
-    background:var(--surface); border:1px solid var(--border); border-radius:10px;
-    padding:14px 18px; display:flex; align-items:center; gap:14px; margin-bottom:10px;
-  }
-  .guide-avatar { width:36px; height:36px; border-radius:50%; background:var(--gold-dark); display:flex; align-items:center; justify-content:center; font-size:14px; color:#000; font-weight:700; flex-shrink:0; }
-  .guide-info { flex:1; }
-  .guide-info .name { font-size:.9rem; color:var(--text); }
-  .guide-info .email { font-size:.75rem; color:var(--muted); }
-  .guide-badge { font-size:.7rem; padding:3px 10px; border-radius:20px; background:rgba(201,168,76,.15); color:var(--gold); border:1px solid rgba(201,168,76,.3); }
-  .add-guide-form { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px; }
-  .add-guide-form h3 { color:var(--gold); font-size:.9rem; margin-bottom:14px; }
-  .inline-inputs { display:flex; gap:10px; flex-wrap:wrap; }
-  .inline-inputs input { flex:1; min-width:140px; }
-
-  /* Settings tab */
-  .settings-section { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px; }
-  .settings-section h3 { color:var(--gold); font-size:.9rem; margin-bottom:16px; text-transform:uppercase; letter-spacing:.5px; }
-  .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
-  .toggle-row:last-child { border-bottom:none; }
-  .toggle-row label { color:var(--text); font-size:.9rem; }
-  .toggle { position:relative; width:44px; height:24px; }
-  .toggle input { opacity:0; width:0; height:0; }
-  .slider { position:absolute; inset:0; background:var(--surface2); border-radius:24px; cursor:pointer; transition:.3s; border:1px solid var(--border); }
-  .slider:before { content:''; position:absolute; width:18px; height:18px; left:2px; top:2px; background:var(--muted); border-radius:50%; transition:.3s; }
-  .toggle input:checked + .slider { background:rgba(201,168,76,.2); border-color:var(--gold); }
-  .toggle input:checked + .slider:before { background:var(--gold); transform:translateX(20px); }
-  .danger-btn { background:transparent; color:var(--danger); border:1px solid var(--danger); padding:12px 24px; border-radius:50px; font-size:.9rem; cursor:pointer; transition:all .2s; }
-  .danger-btn:hover { background:rgba(204,68,68,.1); }
-
-  /* Toast */
-  .toast {
-    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
-    background:var(--surface2); border:1px solid var(--gold-dark); color:var(--text);
-    padding:12px 24px; border-radius:50px; font-size:.85rem; z-index:9999;
-    opacity:0; transition:all .3s; pointer-events:none; white-space:nowrap;
-  }
-  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-
-  /* Loading */
-  .loading-overlay {
-    position:fixed; inset:0; background:rgba(0,0,0,.8); display:flex;
-    align-items:center; justify-content:center; z-index:9999; display:none;
-  }
-  .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-
-  .section-title { color:var(--gold); font-size:1rem; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
-  .empty-state { text-align:center; color:var(--muted); padding:40px 20px; font-size:.9rem; }
-  
-  .error-msg { color:var(--danger); font-size:.8rem; margin-top:6px; display:none; }
-  .error-msg.show { display:block; }
+:root{--bg:#000;--gold:#C9A84C;--gold-light:#E8C97A;--gold-dark:#8B6914;--text:#EDE0B8;--muted:#7A6830;--surface:#0D0D00;--surface2:#1A1500;--border:#2A2000;--danger:#cc4444;--success:#4a9}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#111}::-webkit-scrollbar-thumb{background:var(--gold-dark);border-radius:3px}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+#scr-landing{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a1200 0%,#000 70%);text-align:center;padding:40px 20px;gap:0}
+.logo-area{margin-bottom:36px}
+.logo-area .ankh{font-size:60px;margin-bottom:12px}
+.logo-area h1{font-size:2.2rem;color:var(--gold);letter-spacing:3px;text-transform:uppercase}
+.logo-area p{color:var(--muted);margin-top:6px;font-size:.95rem;letter-spacing:1px}
+.landing-btns{display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px}
+.btn{all:unset;display:block;text-align:center;padding:15px 32px;border-radius:50px;font-size:.95rem;font-weight:700;cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .2s}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(201,168,76,.4)}
+.btn-outline{border:1px solid var(--gold);color:var(--gold)}
+.btn-outline:hover{background:rgba(201,168,76,.1)}
+.btn-danger{background:transparent;border:1px solid var(--danger);color:var(--danger)}
+.btn-danger:hover{background:rgba(204,68,68,.1)}
+.divider{color:var(--muted);font-size:.8rem;text-align:center}
+.session-card{background:var(--surface);border:1px solid var(--gold-dark);border-radius:14px;padding:20px;margin-bottom:14px;text-align:center;width:100%;max-width:320px}
+.session-card .co-name{color:var(--gold);font-size:1.1rem;font-weight:700;margin-bottom:2px}
+.session-card .co-email{color:var(--muted);font-size:.8rem}
+#scr-login,#scr-register{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a1200 0%,#000 70%);padding:20px;flex-direction:column}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 28px;width:100%;max-width:420px}
+.auth-card h2{color:var(--gold);font-size:1.5rem;margin-bottom:4px}
+.auth-card p{color:var(--muted);font-size:.85rem;margin-bottom:24px}
+.field{margin-bottom:16px}
+.field label{display:block;color:var(--muted);font-size:.75rem;margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:11px 15px;border-radius:10px;font-size:.9rem;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--gold)}
+.auth-link{text-align:center;margin-top:18px;color:var(--muted);font-size:.82rem}
+.auth-link span{color:var(--gold);cursor:pointer;text-decoration:underline}
+.back-btn{all:unset;color:var(--muted);cursor:pointer;font-size:.82rem;margin-bottom:18px;display:flex;align-items:center;gap:5px;align-self:flex-start}
+.back-btn:hover{color:var(--gold)}
+.err{color:var(--danger);font-size:.78rem;margin-top:6px;display:none}
+.err.show{display:block}
+/* Dashboard */
+#scr-dashboard{background:var(--bg)}
+.dash-header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.dash-header .brand{display:flex;align-items:center;gap:10px}
+.brand-ava{width:34px;height:34px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:15px;color:#000;font-weight:700;flex-shrink:0;overflow:hidden}
+.brand-ava img{width:100%;height:100%;object-fit:cover}
+.brand-info h2{font-size:.95rem;color:var(--gold)}
+.brand-info p{font-size:.72rem;color:var(--muted)}
+.icon-btn{all:unset;cursor:pointer;color:var(--muted);font-size:1.1rem;padding:6px;border-radius:8px}
+.icon-btn:hover{color:var(--gold)}
+.dash-tabs{display:flex;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);padding:0 14px}
+.dash-tabs::-webkit-scrollbar{height:0}
+.dash-tab{all:unset;padding:13px 18px;color:var(--muted);font-size:.82rem;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+.dash-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-body{display:none;padding:20px;max-width:860px;margin:0 auto}
+.tab-body.active{display:block}
+/* Cards / grids */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:22px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center}
+.stat-card .v{font-size:2rem;font-weight:700;color:var(--gold)}
+.stat-card .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.section-hd{color:var(--gold);font-size:.9rem;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+/* Trial banner */
+.trial-banner{background:linear-gradient(135deg,#1a1200,#2A1F00);border:1px solid var(--gold-dark);border-radius:12px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.trial-days{font-size:2.4rem;font-weight:700;color:var(--gold)}
+.trial-lbl{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:1px}
+/* Guide items */
+.guide-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px}
+.guide-card-header{display:flex;align-items:center;gap:12px}
+.guide-ava{width:38px;height:38px;border-radius:50%;background:var(--gold-dark);display:flex;align-items:center;justify-content:center;font-size:15px;color:#000;font-weight:700;flex-shrink:0}
+.guide-meta{flex:1}
+.guide-meta .name{font-size:.9rem;color:var(--text);font-weight:600}
+.guide-meta .email{font-size:.75rem;color:var(--muted)}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.3px}
+.badge-pending{background:rgba(122,104,48,.2);color:var(--muted);border:1px solid var(--border)}
+.badge-active{background:rgba(74,153,74,.15);color:var(--success);border:1px solid rgba(74,153,74,.3)}
+.badge-live{background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+/* Guide groups sublist */
+.guide-groups{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.group-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:8px;margin-bottom:6px}
+.group-code{font-family:monospace;font-size:.85rem;color:var(--gold);letter-spacing:2px;flex-shrink:0}
+.group-name{flex:1;font-size:.82rem;color:var(--text)}
+.group-tourists{font-size:.75rem;color:var(--muted)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);animation:blink 1s ease-in-out infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+/* Invite form */
+.invite-form{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.invite-form h3{color:var(--gold);font-size:.85rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.invite-row{display:flex;gap:10px;flex-wrap:wrap}
+.invite-row input{flex:1;min-width:180px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:11px 15px;border-radius:10px;font-size:.9rem;outline:none}
+.invite-row input:focus{border-color:var(--gold)}
+.invite-btn{all:unset;cursor:pointer;background:var(--gold);color:#000;padding:11px 22px;border-radius:10px;font-weight:700;font-size:.85rem;white-space:nowrap}
+.invite-btn:hover{background:var(--gold-light)}
+/* Branding */
+.brand-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:520px){.brand-grid{grid-template-columns:1fr}}
+.brand-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
+.brand-section h3{color:var(--gold);font-size:.82rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.color-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.color-row label{flex:1;color:var(--muted);font-size:.82rem}
+.color-row input[type=color]{width:38px;height:30px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);cursor:pointer;padding:2px}
+.logo-drop{border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;cursor:pointer;color:var(--muted);font-size:.82rem;transition:border-color .2s}
+.logo-drop:hover{border-color:var(--gold)}
+.preview-card{border-radius:12px;padding:18px;text-align:center;margin-top:14px;border:1px solid var(--border);transition:all .3s}
+.preview-card h4{font-size:.95rem;margin-bottom:4px}
+.preview-card p{font-size:.78rem;opacity:.7}
+.preview-logo-ph{width:48px;height:48px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:20px;color:#000;font-weight:700;margin:0 auto 10px}
+/* Settings */
+.settings-sec{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px}
+.settings-sec h3{color:var(--gold);font-size:.82rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-row label{color:var(--text);font-size:.88rem}
+.tog{position:relative;width:42px;height:23px}
+.tog input{opacity:0;width:0;height:0}
+.sl{position:absolute;inset:0;background:var(--surface2);border-radius:23px;cursor:pointer;transition:.3s;border:1px solid var(--border)}
+.sl:before{content:'';position:absolute;width:17px;height:17px;left:2px;top:2px;background:var(--muted);border-radius:50%;transition:.3s}
+.tog input:checked+.sl{background:rgba(201,168,76,.2);border-color:var(--gold)}
+.tog input:checked+.sl:before{background:var(--gold);transform:translateX(19px)}
+/* Empty */
+.empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:.88rem;line-height:1.8}
+/* Toast / Loading */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--gold-dark);color:var(--text);padding:10px 22px;border-radius:50px;font-size:.82rem;z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.loading-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:9999}
+.spinner{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.save-btn{all:unset;cursor:pointer;background:var(--gold);color:#000;padding:11px 26px;border-radius:50px;font-size:.88rem;font-weight:700;margin-top:14px;display:inline-block;transition:all .2s}
+.save-btn:hover{background:var(--gold-light)}
 </style>
 </head>
 <body>
-
-<!-- Loading Overlay -->
-<div class="loading-overlay" id="loading">
-  <div class="spinner"></div>
-</div>
-
-<!-- Toast -->
+<div class="loading-ov" id="loading"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
-<!-- SCREEN: Landing -->
-<div class="screen active" id="screen-landing">
+<!-- LANDING -->
+<div class="screen active" id="scr-landing">
   <div class="logo-area">
     <div class="ankh">𓂀</div>
     <h1>Khufu Guide</h1>
-    <p>Smart Tour Guide Platform for Egypt</p>
+    <p>Company Management Portal</p>
   </div>
-
-  <!-- Shown when already logged in -->
-  <div id="logged-in-panel" style="display:none;width:100%;max-width:320px;text-align:center">
-    <div style="background:var(--surface);border:1px solid var(--gold-dark);border-radius:14px;padding:20px;margin-bottom:14px">
-      <div style="font-size:2rem;margin-bottom:8px">𓂀</div>
-      <div style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Logged in as</div>
-      <div id="landing-company-name" style="color:var(--gold);font-size:1.1rem;font-weight:700;margin-bottom:2px">Company</div>
-      <div id="landing-user-email" style="color:var(--muted);font-size:.8rem"></div>
+  <!-- Logged-in state -->
+  <div id="panel-loggedin" style="display:none;width:100%;max-width:320px;text-align:center">
+    <div class="session-card">
+      <div style="font-size:1.8rem;margin-bottom:8px">𓂀</div>
+      <div style="color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Signed in as</div>
+      <div class="co-name" id="landing-coname"></div>
+      <div class="co-email" id="landing-coemail"></div>
     </div>
-    <button class="btn-primary" style="width:100%;margin-bottom:10px" onclick="goToDashboard()">Open My Dashboard</button>
-    <button class="btn-outline" style="width:100%" onclick="switchAccount()">Switch / Create New Account</button>
+    <button class="btn btn-gold" style="width:100%;margin-bottom:10px" onclick="goToDashboard()">Open Dashboard →</button>
+    <button class="btn btn-outline" style="width:100%" onclick="doSwitchAccount()">Switch / New Account</button>
   </div>
-
-  <!-- Shown when not logged in -->
-  <div id="logged-out-panel" class="landing-btns">
-    <button class="btn-primary" onclick="showScreen('register')">Start Free Trial</button>
-    <div class="landing-divider">already have an account?</div>
-    <button class="btn-outline" onclick="showScreen('login')">Company Login</button>
+  <!-- Logged-out state -->
+  <div id="panel-loggedout" class="landing-btns">
+    <button class="btn btn-gold" onclick="showScr('scr-register')">🚀 Start Free Trial</button>
+    <div class="divider">— already have an account? —</div>
+    <button class="btn btn-outline" onclick="showScr('scr-login')">Company Login</button>
   </div>
 </div>
 
-<!-- SCREEN: Login -->
-<div class="screen" id="screen-login">
-  <div style="padding:20px;">
-    <button class="back-btn" onclick="showScreen('landing')">← Back</button>
-  </div>
-  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px;">
+<!-- LOGIN -->
+<div class="screen" id="scr-login">
+  <div style="padding:16px 20px"><button class="back-btn" onclick="showScr('scr-landing')">← Back</button></div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px">
     <div class="auth-card">
       <h2>Welcome back 𓂀</h2>
       <p>Sign in to your company portal</p>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="login-email" placeholder="company@email.com">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="login-password" placeholder="••••••••">
-        <div class="error-msg" id="login-error"></div>
-      </div>
-      <button class="btn-primary" style="width:100%" onclick="doLogin()">Sign In</button>
-      <div class="auth-link">Don't have an account? <span onclick="showScreen('register')">Start free trial</span></div>
+      <div class="field"><label>Email</label><input type="email" id="l-email" placeholder="company@email.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••"><div class="err" id="l-err"></div></div>
+      <button class="btn btn-gold" style="width:100%" onclick="doLogin()">Sign In</button>
+      <div class="auth-link">No account? <span onclick="showScr('scr-register')">Start free trial</span></div>
     </div>
   </div>
 </div>
 
-<!-- SCREEN: Register -->
-<div class="screen" id="screen-register">
-  <div style="padding:20px;">
-    <button class="back-btn" onclick="showScreen('landing')">← Back</button>
-  </div>
-  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px;">
+<!-- REGISTER -->
+<div class="screen" id="scr-register">
+  <div style="padding:16px 20px"><button class="back-btn" onclick="showScr('scr-landing')">← Back</button></div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px">
     <div class="auth-card">
       <h2>Create Company Account</h2>
-      <p>14-day free trial, no credit card required</p>
-      <div class="form-group">
-        <label>Company Name</label>
-        <input type="text" id="reg-name" placeholder="Nile Tours Egypt">
-      </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="reg-email" placeholder="company@email.com">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="reg-password" placeholder="Min 6 characters">
-      </div>
-      <div class="form-group">
-        <label>Company Logo (optional)</label>
-        <div class="logo-upload-area" onclick="document.getElementById('logo-file').click()">
-          <div id="logo-preview-text">📷 Click to upload logo</div>
-          <img id="logo-preview-img" style="display:none">
-        </div>
-        <input type="file" id="logo-file" accept="image/*" onchange="previewLogo(this)">
-      </div>
-      <div class="error-msg" id="reg-error"></div>
-      <button class="btn-primary" style="width:100%;margin-top:8px" onclick="doRegister()">Create Account & Start Trial</button>
-      <div class="auth-link">Already have an account? <span onclick="showScreen('login')">Sign in</span></div>
+      <p>14-day free trial · No credit card required</p>
+      <div class="field"><label>Company Name</label><input type="text" id="r-name" placeholder="Nile Tours Egypt"></div>
+      <div class="field"><label>Email</label><input type="email" id="r-email" placeholder="company@email.com"></div>
+      <div class="field"><label>Password (min 6 chars)</label><input type="password" id="r-pass" placeholder="••••••••"><div class="err" id="r-err"></div></div>
+      <button class="btn btn-gold" style="width:100%;margin-top:4px" onclick="doRegister()">Create Account & Start Trial</button>
+      <div class="auth-link">Already registered? <span onclick="showScr('scr-login')">Sign in</span></div>
     </div>
   </div>
 </div>
 
-<!-- SCREEN: Dashboard -->
-<div class="screen" id="screen-dashboard">
+<!-- DASHBOARD -->
+<div class="screen" id="scr-dashboard">
   <div class="dash-header">
     <div class="brand">
-      <div class="dash-header__logo-wrap" id="header-logo-wrap">
-        <div class="brand-logo-placeholder" id="header-logo-placeholder">K</div>
-      </div>
-      <div>
-        <h2 id="header-company-name">Company Name</h2>
-        <p id="header-user-email">email@company.com</p>
+      <div class="brand-ava" id="hdr-ava">K</div>
+      <div class="brand-info">
+        <h2 id="hdr-name">Company</h2>
+        <p id="hdr-email">—</p>
       </div>
     </div>
-    <div class="header-actions">
-      <button class="icon-btn" onclick="doLogout()" title="Logout">⎋</button>
-    </div>
+    <button class="icon-btn" onclick="doLogout()" title="Logout">⎋</button>
   </div>
-
   <div class="dash-tabs">
     <button class="dash-tab active" data-tab="overview" onclick="switchTab('overview')">📊 Overview</button>
-    <button class="dash-tab" data-tab="schedule" onclick="switchTab('schedule')">🗓️ Schedule</button>
-    <button class="dash-tab" data-tab="branding" onclick="switchTab('branding')">🎨 Branding</button>
     <button class="dash-tab" data-tab="guides" onclick="switchTab('guides')">👥 Guides</button>
+    <button class="dash-tab" data-tab="branding" onclick="switchTab('branding')">🎨 Branding</button>
     <button class="dash-tab" data-tab="settings" onclick="switchTab('settings')">⚙️ Settings</button>
   </div>
 
-  <!-- Tab: Overview -->
-  <div class="dash-content" id="tab-overview">
+  <!-- OVERVIEW -->
+  <div class="tab-body active" id="tab-overview">
     <div class="trial-banner">
       <div>
-        <div class="label">Trial Days Remaining</div>
-        <div class="days" id="trial-days">14</div>
-        <div class="label" id="trial-end-date">Trial ends: —</div>
+        <div class="trial-lbl">Trial Days Remaining</div>
+        <div class="trial-days" id="trial-days">14</div>
+        <div class="trial-lbl" id="trial-end">—</div>
       </div>
-      <button class="launch-btn" onclick="launchTourApp()">🚀 Launch Tour App</button>
+      <button class="btn btn-gold" onclick="switchTab('guides')">👥 Manage Guides</button>
     </div>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="val" id="stat-guides">0</div>
-        <div class="lbl">Guides</div>
-      </div>
-      <div class="stat-card">
-        <div class="val" id="stat-stops">0</div>
-        <div class="lbl">Tour Stops</div>
-      </div>
-      <div class="stat-card">
-        <div class="val" id="stat-days">0</div>
-        <div class="lbl">Tour Days</div>
-      </div>
-      <div class="stat-card">
-        <div class="val">✓</div>
-        <div class="lbl">Status Active</div>
-      </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="v" id="ov-guides">0</div><div class="l">Guides</div></div>
+      <div class="stat-card"><div class="v" id="ov-groups">0</div><div class="l">Groups</div></div>
+      <div class="stat-card"><div class="v" id="ov-tourists">0</div><div class="l">Tourists Online</div></div>
+      <div class="stat-card"><div class="v" id="ov-live">0</div><div class="l">Live Sessions</div></div>
     </div>
-    <div class="section-title">🏛️ Quick Start</div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;">
-      <p style="color:var(--muted);font-size:.85rem;line-height:1.7">
-        1. Add your tour <strong style="color:var(--text)">schedule</strong> under the Schedule tab<br>
-        2. Customize your <strong style="color:var(--text)">branding</strong> colors & logo<br>
-        3. Invite your <strong style="color:var(--text)">guides</strong> by email<br>
-        4. Hit <strong style="color:var(--gold)">Launch Tour App</strong> to open the guide app
-      </p>
-    </div>
+    <div class="section-hd">🏛️ All Guide Groups</div>
+    <div id="ov-groups-list"><div class="empty">No guides invited yet. Go to the Guides tab to invite your first guide.</div></div>
   </div>
 
-  <!-- Tab: Schedule -->
-  <div class="dash-content" id="tab-schedule" style="display:none">
-    <div class="section-title">🗓️ Tour Schedule Editor</div>
-    <div id="schedule-days-container"></div>
-    <button class="add-day-btn" onclick="addDay()">+ Add Tour Day</button>
-    <br>
-    <button class="save-btn" onclick="saveSchedule()">💾 Save Schedule</button>
+  <!-- GUIDES -->
+  <div class="tab-body" id="tab-guides">
+    <div class="invite-form">
+      <h3>Invite a Tour Guide</h3>
+      <p style="color:var(--muted);font-size:.8rem;margin-bottom:14px">Enter the guide's email — they can then register at the Guide Portal using that exact email.</p>
+      <div class="invite-row">
+        <input type="text" id="inv-name" placeholder="Guide full name">
+        <input type="email" id="inv-email" placeholder="guide@email.com">
+        <button class="invite-btn" onclick="inviteGuide()">Send Invite</button>
+      </div>
+      <div class="err" id="inv-err" style="margin-top:8px"></div>
+    </div>
+    <div class="section-hd">
+      <span>Your Guides</span>
+      <span style="color:var(--muted);font-size:.75rem" id="guides-count">0 guides</span>
+    </div>
+    <div id="guides-list"><div class="empty">No guides invited yet.</div></div>
   </div>
 
-  <!-- Tab: Branding -->
-  <div class="dash-content" id="tab-branding" style="display:none">
-    <div class="section-title">🎨 Brand Customization</div>
-    <div class="branding-grid">
+  <!-- BRANDING -->
+  <div class="tab-body" id="tab-branding">
+    <div class="section-hd">🎨 Brand Customization</div>
+    <div class="brand-grid">
       <div>
-        <div class="branding-section">
+        <div class="brand-section">
           <h3>Logo</h3>
-          <div class="logo-upload-area" onclick="document.getElementById('brand-logo-file').click()">
-            <div id="brand-logo-preview-text">📷 Upload logo</div>
-            <img id="brand-logo-preview-img" style="display:none;max-height:60px;max-width:100%;object-fit:contain">
+          <div class="logo-drop" onclick="document.getElementById('brand-logo-input').click()">
+            <div id="logo-drop-text">📷 Upload company logo</div>
+            <img id="logo-drop-img" style="display:none;max-height:56px;max-width:100%;object-fit:contain">
           </div>
-          <input type="file" id="brand-logo-file" accept="image/*" style="display:none" onchange="previewBrandLogo(this)">
+          <input type="file" id="brand-logo-input" accept="image/*" style="display:none" onchange="onLogoChange(this)">
         </div>
-        <div class="branding-section" style="margin-top:16px">
+        <div class="brand-section" style="margin-top:14px">
           <h3>Colors</h3>
-          <div class="color-row">
-            <label>Primary Color</label>
-            <input type="color" id="color-primary" value="#C9A84C" oninput="updatePreview()">
-          </div>
-          <div class="color-row">
-            <label>Background</label>
-            <input type="color" id="color-bg" value="#000000" oninput="updatePreview()">
-          </div>
-          <div class="color-row">
-            <label>Text Color</label>
-            <input type="color" id="color-text" value="#EDE0B8" oninput="updatePreview()">
-          </div>
-          <div class="color-row">
-            <label>Accent Color</label>
-            <input type="color" id="color-accent" value="#8B6914" oninput="updatePreview()">
-          </div>
+          <div class="color-row"><label>Primary</label><input type="color" id="c-primary" value="#C9A84C" oninput="updatePreview()"></div>
+          <div class="color-row"><label>Background</label><input type="color" id="c-bg" value="#000000" oninput="updatePreview()"></div>
+          <div class="color-row"><label>Text</label><input type="color" id="c-text" value="#EDE0B8" oninput="updatePreview()"></div>
+          <div class="color-row"><label>Accent</label><input type="color" id="c-accent" value="#8B6914" oninput="updatePreview()"></div>
         </div>
       </div>
       <div>
-        <div class="branding-section">
-          <h3>Preview</h3>
-          <div class="preview-card" id="brand-preview">
-            <img class="preview-logo" id="preview-logo-img" style="display:none">
-            <div id="preview-logo-placeholder" style="width:50px;height:50px;border-radius:50%;background:#C9A84C;display:flex;align-items:center;justify-content:center;font-size:22px;color:#000;font-weight:700;margin:0 auto 10px;">K</div>
-            <h4 id="preview-company-name" style="color:#EDE0B8">Your Company</h4>
+        <div class="brand-section">
+          <h3>Live Preview</h3>
+          <div class="preview-card" id="preview-card">
+            <img id="preview-logo-img" style="display:none;width:48px;height:48px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:none">
+            <div class="preview-logo-ph" id="preview-logo-ph">K</div>
+            <h4 id="preview-name" style="color:#EDE0B8">Your Company</h4>
             <p style="color:#7A6830">Khufu Guide Tour App</p>
-            <div style="margin-top:12px;padding:8px 16px;border-radius:20px;display:inline-block;font-size:.8rem;font-weight:700" id="preview-btn">🚀 Live</div>
           </div>
         </div>
-        <button class="save-btn" onclick="saveBranding()" style="margin-top:16px;width:100%">💾 Save Branding</button>
+        <button class="save-btn" onclick="saveBranding()" style="width:100%;text-align:center;margin-top:14px">💾 Save Branding</button>
       </div>
     </div>
   </div>
 
-  <!-- Tab: Guides -->
-  <div class="dash-content" id="tab-guides" style="display:none">
-    <div class="section-title">👥 Team Guides</div>
-    <div class="add-guide-form">
-      <h3>Add / Invite Guide</h3>
-      <div class="inline-inputs">
-        <input class="form-group input" type="text" id="guide-name-input" placeholder="Guide Name" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:10px;font-size:.9rem;outline:none;min-width:140px">
-        <input class="form-group input" type="email" id="guide-email-input" placeholder="guide@email.com" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:10px;font-size:.9rem;outline:none;min-width:160px">
-        <button class="save-btn" onclick="addGuide()" style="margin:0">Add</button>
-      </div>
-    </div>
-    <div id="guides-list">
-      <div class="empty-state">No guides added yet. Add your first guide above.</div>
-    </div>
-  </div>
-
-  <!-- Tab: Settings -->
-  <div class="dash-content" id="tab-settings" style="display:none">
-    <div class="section-title">⚙️ Settings</div>
-    <div class="settings-section">
+  <!-- SETTINGS -->
+  <div class="tab-body" id="tab-settings">
+    <div class="settings-sec">
       <h3>Tour Info</h3>
-      <div class="form-group">
-        <label>Tour Name</label>
-        <input type="text" id="tour-name-input" placeholder="e.g. Discover Egypt 2025">
-      </div>
-      <div class="form-group">
-        <label>Company Website</label>
-        <input type="url" id="tour-website-input" placeholder="https://yourcompany.com">
-      </div>
-      <button class="save-btn" onclick="saveSettings()">Save</button>
+      <div class="field"><label>Tour Name</label><input type="text" id="s-tourname" placeholder="Discover Egypt 2025"></div>
+      <div class="field"><label>Company Website</label><input type="url" id="s-website" placeholder="https://yourcompany.com"></div>
+      <button class="save-btn" onclick="saveSettings()">Save Changes</button>
     </div>
-    <div class="settings-section">
+    <div class="settings-sec">
       <h3>Notifications</h3>
-      <div class="toggle-row">
-        <label>Chat message alerts</label>
-        <label class="toggle"><input type="checkbox" id="notif-chat" checked><span class="slider"></span></label>
-      </div>
-      <div class="toggle-row">
-        <label>Tourist join alerts</label>
-        <label class="toggle"><input type="checkbox" id="notif-join" checked><span class="slider"></span></label>
-      </div>
-      <div class="toggle-row">
-        <label>Trial expiry reminders</label>
-        <label class="toggle"><input type="checkbox" id="notif-trial" checked><span class="slider"></span></label>
-      </div>
+      <div class="toggle-row"><label>Guide joins alert</label><label class="tog"><input type="checkbox" id="n-guide" checked><span class="sl"></span></label></div>
+      <div class="toggle-row"><label>Live session alerts</label><label class="tog"><input type="checkbox" id="n-live" checked><span class="sl"></span></label></div>
+      <div class="toggle-row"><label>Trial expiry reminders</label><label class="tog"><input type="checkbox" id="n-trial" checked><span class="sl"></span></label></div>
     </div>
-    <div class="settings-section">
+    <div class="settings-sec">
       <h3>Account</h3>
-      <button class="danger-btn" onclick="doLogout()">Sign Out</button>
+      <button class="btn btn-danger" onclick="doLogout()" style="display:inline-block;padding:12px 24px;border-radius:50px;font-size:.88rem">Sign Out</button>
     </div>
   </div>
 </div>
 
-<!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getDatabase, ref, set, get, push, onValue, update } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getDatabase, ref, set, get, push, onValue, update, remove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCmTbUGrJn1_DBPGt6dBE0ok0iCO1SUGVE",
-  authDomain: "khufu-guide.firebaseapp.com",
-  databaseURL: "https://khufu-guide-default-rtdb.firebaseio.com",
-  projectId: "khufu-guide",
-  storageBucket: "khufu-guide.firebasestorage.app",
-  messagingSenderId: "64813185174",
-  appId: "1:64813185174:web:290746a3f60e843f76aab7"
-};
-
-const app = initializeApp(firebaseConfig);
+const app = initializeApp({
+  apiKey:"AIzaSyCmTbUGrJn1_DBPGt6dBE0ok0iCO1SUGVE",
+  authDomain:"khufu-guide.firebaseapp.com",
+  databaseURL:"https://khufu-guide-default-rtdb.firebaseio.com",
+  projectId:"khufu-guide",storageBucket:"khufu-guide.firebasestorage.app",
+  messagingSenderId:"64813185174",appId:"1:64813185174:web:290746a3f60e843f76aab7"
+});
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-window._db = db;
-window._auth = auth;
-window._ref = ref;
-window._set = set;
-window._get = get;
-window._push = push;
-window._onValue = onValue;
-window._update = update;
+let cu = null, co = {}, logoB64 = null, intentional = false;
 
-let currentUser = null;
-let companyData = {};
-let logoBase64 = null;
-let brandLogoBase64 = null;
+// encode email for firebase key (dots not allowed)
+const encEmail = e => e.toLowerCase().replace(/\./g,'_').replace(/@/g,'__at__');
 
-// intentionalAuth = true when user clicks Login or Register button
-// This tells onAuthStateChanged to go to dashboard instead of landing panel
-let intentionalAuth = false;
-
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async user => {
   if (user) {
-    currentUser = user;
+    cu = user;
     const snap = await get(ref(db, `companies/${user.uid}`));
-    if (snap.exists()) companyData = snap.val();
-
-    if (intentionalAuth) {
-      // Came from login/register — go straight to dashboard
-      intentionalAuth = false;
-      showLoading(false);
+    if (snap.exists()) co = snap.val(); else co = {};
+    if (intentional) {
+      intentional = false;
+      loading(false);
       renderDashboard();
-      showScreen('dashboard');
+      showScr('scr-dashboard');
     } else {
-      // Page reload with existing session — show landing "continue" panel
-      document.getElementById('logged-in-panel').style.display = 'block';
-      document.getElementById('logged-out-panel').style.display = 'none';
-      document.getElementById('landing-company-name').textContent = companyData.name || 'My Company';
-      document.getElementById('landing-user-email').textContent = user.email;
-      showScreen('landing');
+      document.getElementById('panel-loggedin').style.display = 'block';
+      document.getElementById('panel-loggedout').style.display = 'none';
+      document.getElementById('landing-coname').textContent = co.name || 'My Company';
+      document.getElementById('landing-coemail').textContent = user.email;
+      showScr('scr-landing');
     }
   } else {
-    currentUser = null;
-    companyData = {};
-    intentionalAuth = false;
-    document.getElementById('logged-in-panel').style.display = 'none';
-    document.getElementById('logged-out-panel').style.display = 'flex';
-    showLoading(false);
-    showScreen('landing');
+    cu = null; co = {}; intentional = false;
+    document.getElementById('panel-loggedin').style.display = 'none';
+    document.getElementById('panel-loggedout').style.display = 'flex';
+    loading(false);
+    showScr('scr-landing');
   }
 });
 
-window.goToDashboard = () => {
-  renderDashboard();
-  showScreen('dashboard');
-};
+window.goToDashboard = () => { renderDashboard(); showScr('scr-dashboard'); };
+window.doSwitchAccount = async () => { loading(true); await signOut(auth); };
 
-window.switchAccount = async () => {
-  showLoading(true);
-  await signOut(auth);
-};
-
-async function loadCompanyData() {
-  showLoading(true);
-  try {
-    const snap = await get(ref(db, `companies/${currentUser.uid}`));
-    if (snap.exists()) companyData = snap.val();
-  } catch(e) { console.error(e); }
-  showLoading(false);
-}
-
-function renderDashboard() {
-  // Header
-  const name = companyData.name || 'My Company';
-  document.getElementById('header-company-name').textContent = name;
-  document.getElementById('header-user-email').textContent = currentUser.email;
-  document.getElementById('header-logo-placeholder').textContent = name[0].toUpperCase();
-  document.getElementById('preview-company-name').textContent = name;
-
-  // Trial
-  const trialEnd = companyData.trialEnd;
-  if (trialEnd) {
-    const daysLeft = Math.max(0, Math.ceil((trialEnd - Date.now()) / 86400000));
-    document.getElementById('trial-days').textContent = daysLeft;
-    document.getElementById('trial-end-date').textContent = `Trial ends: ${new Date(trialEnd).toLocaleDateString()}`;
-  }
-
-  // Stats
-  const guides = companyData.guides ? Object.keys(companyData.guides).length : 0;
-  document.getElementById('stat-guides').textContent = guides;
-  const schedule = companyData.schedule || [];
-  document.getElementById('stat-days').textContent = schedule.length;
-  const stops = schedule.reduce((a,d) => a + (d.stops ? d.stops.length : 0), 0);
-  document.getElementById('stat-stops').textContent = stops;
-
-  // Branding colors
-  if (companyData.branding) {
-    const b = companyData.branding;
-    if (b.primary) document.getElementById('color-primary').value = b.primary;
-    if (b.bg) document.getElementById('color-bg').value = b.bg;
-    if (b.text) document.getElementById('color-text').value = b.text;
-    if (b.accent) document.getElementById('color-accent').value = b.accent;
-    if (b.logo) {
-      brandLogoBase64 = b.logo;
-      document.getElementById('brand-logo-preview-img').src = b.logo;
-      document.getElementById('brand-logo-preview-img').style.display = 'block';
-      document.getElementById('brand-logo-preview-text').style.display = 'none';
-      document.getElementById('preview-logo-img').src = b.logo;
-      document.getElementById('preview-logo-img').style.display = 'block';
-      document.getElementById('preview-logo-placeholder').style.display = 'none';
-    }
-  }
-  updatePreview();
-  renderSchedule();
-  renderGuides();
-}
-
-// Schedule
-function renderSchedule() {
-  const container = document.getElementById('schedule-days-container');
-  const schedule = companyData.schedule || [];
-  container.innerHTML = '';
-  schedule.forEach((day, di) => {
-    const div = document.createElement('div');
-    div.className = 'day-block';
-    div.innerHTML = `
-      <div class="day-header">
-        <h3>📅 Day ${di + 1}</h3>
-        <button class="del-btn" onclick="removeDay(${di})">🗑️</button>
-      </div>
-      ${(day.stops || []).map((s, si) => `
-        <div class="stop-item">
-          <div class="stop-dot"></div>
-          <input value="${s.name || ''}" placeholder="Stop name" onchange="updateStop(${di},${si},'name',this.value)">
-          <input class="stop-time-input" value="${s.time || ''}" placeholder="10:00" onchange="updateStop(${di},${si},'time',this.value)">
-          <button class="del-btn" onclick="removeStop(${di},${si})">✕</button>
-        </div>
-      `).join('')}
-      <button class="add-stop-btn" onclick="addStop(${di})">+ Add Stop</button>
-    `;
-    container.appendChild(div);
-  });
-}
-
-window.addDay = () => {
-  if (!companyData.schedule) companyData.schedule = [];
-  companyData.schedule.push({ stops: [{ name: '', time: '' }] });
-  renderSchedule();
-};
-window.removeDay = (di) => { companyData.schedule.splice(di, 1); renderSchedule(); };
-window.addStop = (di) => { if (!companyData.schedule[di].stops) companyData.schedule[di].stops = []; companyData.schedule[di].stops.push({ name: '', time: '' }); renderSchedule(); };
-window.removeStop = (di, si) => { companyData.schedule[di].stops.splice(si, 1); renderSchedule(); };
-window.updateStop = (di, si, field, val) => { companyData.schedule[di].stops[si][field] = val; };
-
-window.saveSchedule = async () => {
-  showLoading(true);
-  await set(ref(db, `companies/${currentUser.uid}/schedule`), companyData.schedule || []);
-  showLoading(false);
-  toast('Schedule saved ✓');
-  renderDashboard();
-};
-
-// Guides
-function renderGuides() {
-  const list = document.getElementById('guides-list');
-  const guides = companyData.guides ? Object.values(companyData.guides) : [];
-  if (!guides.length) { list.innerHTML = '<div class="empty-state">No guides added yet. Add your first guide above.</div>'; return; }
-  list.innerHTML = guides.map((g,i) => `
-    <div class="guide-item">
-      <div class="guide-avatar">${(g.name||'G')[0].toUpperCase()}</div>
-      <div class="guide-info">
-        <div class="name">${g.name}</div>
-        <div class="email">${g.email}</div>
-      </div>
-      <div class="guide-badge">Guide</div>
-    </div>
-  `).join('');
-}
-
-window.addGuide = async () => {
-  const name = document.getElementById('guide-name-input').value.trim();
-  const email = document.getElementById('guide-email-input').value.trim();
-  if (!name || !email) { toast('Please enter name and email'); return; }
-  showLoading(true);
-  const guideRef = push(ref(db, `companies/${currentUser.uid}/guides`));
-  await set(guideRef, { name, email, addedAt: Date.now() });
-  if (!companyData.guides) companyData.guides = {};
-  companyData.guides[guideRef.key] = { name, email };
-  renderGuides();
-  document.getElementById('guide-name-input').value = '';
-  document.getElementById('guide-email-input').value = '';
-  showLoading(false);
-  toast('Guide added ✓');
-  document.getElementById('stat-guides').textContent = Object.keys(companyData.guides).length;
-};
-
-// Branding
-window.previewBrandLogo = (input) => {
-  if (!input.files[0]) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    brandLogoBase64 = e.target.result;
-    document.getElementById('brand-logo-preview-img').src = brandLogoBase64;
-    document.getElementById('brand-logo-preview-img').style.display = 'block';
-    document.getElementById('brand-logo-preview-text').style.display = 'none';
-    document.getElementById('preview-logo-img').src = brandLogoBase64;
-    document.getElementById('preview-logo-img').style.display = 'block';
-    document.getElementById('preview-logo-placeholder').style.display = 'none';
-  };
-  reader.readAsDataURL(input.files[0]);
-};
-
-window.updatePreview = () => {
-  const primary = document.getElementById('color-primary').value;
-  const bg = document.getElementById('color-bg').value;
-  const txt = document.getElementById('color-text').value;
-  const accent = document.getElementById('color-accent').value;
-  const preview = document.getElementById('brand-preview');
-  preview.style.background = bg;
-  preview.style.borderColor = primary;
-  document.getElementById('preview-company-name').style.color = txt;
-  document.getElementById('preview-btn').style.background = primary;
-  document.getElementById('preview-btn').style.color = bg;
-};
-
-window.saveBranding = async () => {
-  const branding = {
-    primary: document.getElementById('color-primary').value,
-    bg: document.getElementById('color-bg').value,
-    text: document.getElementById('color-text').value,
-    accent: document.getElementById('color-accent').value,
-    logo: brandLogoBase64 || null,
-    companyName: companyData.name
-  };
-  showLoading(true);
-  await set(ref(db, `companies/${currentUser.uid}/branding`), branding);
-  companyData.branding = branding;
-  showLoading(false);
-  toast('Branding saved ✓');
-};
-
-// Settings
-window.saveSettings = async () => {
-  const tourName = document.getElementById('tour-name-input').value.trim();
-  const website = document.getElementById('tour-website-input').value.trim();
-  showLoading(true);
-  await update(ref(db, `companies/${currentUser.uid}`), { tourName, website });
-  showLoading(false);
-  toast('Settings saved ✓');
-};
-
-// Auth
 window.doLogin = async () => {
-  const email = document.getElementById('login-email').value.trim();
-  const pass = document.getElementById('login-password').value;
-  const errEl = document.getElementById('login-error');
-  errEl.classList.remove('show');
-  if (!email || !pass) { errEl.textContent='Please fill all fields'; errEl.classList.add('show'); return; }
-  showLoading(true);
+  const email = v('l-email'), pass = v('l-pass'), err = eid('l-err');
+  err.classList.remove('show');
+  if (!email||!pass) { showErr(err,'Please fill all fields'); return; }
+  loading(true);
   try {
-    intentionalAuth = true;
+    intentional = true;
     await signInWithEmailAndPassword(auth, email, pass);
-    // onAuthStateChanged will handle redirect to dashboard
   } catch(e) {
-    intentionalAuth = false;
-    const code = e.code || '';
-    let msg = '';
-    if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') msg = 'Incorrect email or password.';
-    else if (code === 'auth/invalid-email') msg = 'Invalid email address format.';
-    else if (code === 'auth/too-many-requests') msg = 'Too many attempts. Please wait and try again.';
-    else if (code === 'auth/network-request-failed') msg = 'Network error. Check your connection.';
-    else msg = 'Login failed: ' + (e.message || code);
-    errEl.textContent = msg;
-    errEl.classList.add('show');
-    showLoading(false);
+    intentional = false; loading(false);
+    const c = e.code||'';
+    showErr(err, c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')
+      ? 'Incorrect email or password.'
+      : c.includes('network') ? 'Network error. Check your connection.'
+      : c.includes('too-many') ? 'Too many attempts. Wait and try again.'
+      : 'Login failed: '+e.message);
   }
 };
 
 window.doRegister = async () => {
-  const name = document.getElementById('reg-name').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const pass = document.getElementById('reg-password').value;
-  const errEl = document.getElementById('reg-error');
-  errEl.classList.remove('show');
-
-  if (!name) { errEl.textContent='Please enter your company name'; errEl.classList.add('show'); return; }
-  if (!email) { errEl.textContent='Please enter your email'; errEl.classList.add('show'); return; }
-  if (!pass) { errEl.textContent='Please enter a password'; errEl.classList.add('show'); return; }
-  if (pass.length < 6) { errEl.textContent='Password must be at least 6 characters'; errEl.classList.add('show'); return; }
-
-  showLoading(true);
+  const name = v('r-name'), email = v('r-email'), pass = v('r-pass'), err = eid('r-err');
+  err.classList.remove('show');
+  if (!name) { showErr(err,'Enter company name'); return; }
+  if (!email) { showErr(err,'Enter email'); return; }
+  if (!pass||pass.length<6) { showErr(err,'Password must be at least 6 characters'); return; }
+  loading(true);
   try {
-    intentionalAuth = true;
+    intentional = true;
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     const now = Date.now();
-    const companyRecord = {
-      name, email, createdAt: now,
-      trialStart: now, trialEnd: now + 14 * 86400000,
-      schedule: [], guides: {}
-    };
-    await set(ref(db, `companies/${cred.user.uid}`), companyRecord);
-    companyData = companyRecord;
-    // Auth state listener will handle redirect to dashboard
+    co = { name, email, createdAt:now, trialStart:now, trialEnd:now+14*86400000 };
+    await set(ref(db, `companies/${cred.user.uid}`), co);
   } catch(e) {
-    intentionalAuth = false;
-    showLoading(false);
-    const code = e.code || '';
-    let msg = '';
-    if (code === 'auth/email-already-in-use') msg = 'This email is already registered. Please login instead.';
-    else if (code === 'auth/invalid-email') msg = 'Invalid email address format.';
-    else if (code === 'auth/weak-password') msg = 'Password is too weak. Use at least 6 characters.';
-    else if (code === 'auth/network-request-failed') msg = 'Network error. Check your internet connection.';
-    else if (code === 'auth/operation-not-allowed') msg = 'Email sign-up is not enabled. Please contact support.';
-    else if (code === 'auth/too-many-requests') msg = 'Too many attempts. Please wait a moment and try again.';
-    else msg = 'Registration failed: ' + (e.message || code || 'Unknown error');
-    errEl.textContent = msg;
-    errEl.classList.add('show');
+    intentional = false; loading(false);
+    const c = e.code||'';
+    showErr(err, c.includes('email-already-in-use') ? 'This email is already registered. Please login.'
+      : c.includes('invalid-email') ? 'Invalid email format.'
+      : c.includes('network') ? 'Network error.'
+      : 'Registration failed: '+e.message);
   }
 };
 
-window.doLogout = async () => {
-  await signOut(auth);
-  companyData = {};
-  currentUser = null;
-};
+window.doLogout = async () => { loading(true); await signOut(auth); };
 
-// Logo preview (register)
-window.previewLogo = (input) => {
-  if (!input.files[0]) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    logoBase64 = e.target.result;
-    document.getElementById('logo-preview-img').src = logoBase64;
-    document.getElementById('logo-preview-img').style.display = 'block';
-    document.getElementById('logo-preview-text').style.display = 'none';
-  };
-  reader.readAsDataURL(input.files[0]);
-};
+function renderDashboard() {
+  const name = co.name||'Company';
+  eid('hdr-name').textContent = name;
+  eid('hdr-email').textContent = cu.email;
+  eid('hdr-ava').textContent = name[0].toUpperCase();
+  eid('preview-name').textContent = name;
+  eid('preview-logo-ph').textContent = name[0].toUpperCase();
 
-// Launch tour app
-window.launchTourApp = () => {
-  const ctx = {
-    companyId: currentUser.uid,
-    companyName: companyData.name,
-    tourName: companyData.tourName || companyData.name + ' Tour',
-    branding: companyData.branding || {},
-    schedule: companyData.schedule || [],
-    guides: companyData.guides || {}
-  };
-  localStorage.setItem('khufu_launch_ctx', JSON.stringify(ctx));
-  window.open('khufu_guide.html', '_blank');
-};
+  if (co.trialEnd) {
+    const days = Math.max(0, Math.ceil((co.trialEnd - Date.now()) / 86400000));
+    eid('trial-days').textContent = days;
+    eid('trial-end').textContent = 'Ends: '+new Date(co.trialEnd).toLocaleDateString();
+  }
+  if (co.branding) loadBrandingUI(co.branding);
+  if (co.tourName) eid('s-tourname').value = co.tourName;
+  if (co.website) eid('s-website').value = co.website;
 
-// UI helpers
-window.showScreen = (name) => {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + name).classList.add('active');
-};
+  loadGuidesRealtime();
+}
 
-window.switchTab = (tab) => {
-  document.querySelectorAll('.dash-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  ['overview','schedule','branding','guides','settings'].forEach(t => {
-    document.getElementById('tab-' + t).style.display = t === tab ? '' : 'none';
+// ── GUIDES ──
+function loadGuidesRealtime() {
+  onValue(ref(db, `companies/${cu.uid}/guides`), snap => {
+    const guides = snap.val() || {};
+    const arr = Object.entries(guides);
+    eid('guides-count').textContent = arr.length + ' guide' + (arr.length!==1?'s':'');
+    eid('ov-guides').textContent = arr.length;
+    renderGuidesList(arr);
+    loadAllGroupStats(arr);
   });
+}
+
+function renderGuidesList(arr) {
+  const list = eid('guides-list');
+  if (!arr.length) { list.innerHTML = '<div class="empty">No guides invited yet.<br>Use the form above to invite your first guide.</div>'; return; }
+  list.innerHTML = arr.map(([uid, g]) => `
+    <div class="guide-card">
+      <div class="guide-card-header">
+        <div class="guide-ava">${(g.name||'G')[0].toUpperCase()}</div>
+        <div class="guide-meta">
+          <div class="name">${g.name}</div>
+          <div class="email">${g.email}</div>
+        </div>
+        <span class="badge ${g.status==='active'?'badge-active':'badge-pending'}">${g.status==='active'?'✓ Active':'⏳ Pending'}</span>
+      </div>
+      <div id="groups-of-${uid}" style="margin-top:8px"></div>
+    </div>`).join('');
+
+  // Load each guide's groups
+  arr.forEach(([uid]) => {
+    onValue(ref(db, `guides/${uid}/groups`), snap => {
+      const groups = snap.val() || {};
+      const el = eid(`groups-of-${uid}`);
+      const gArr = Object.entries(groups);
+      if (!gArr.length) { el.innerHTML = ''; return; }
+      el.innerHTML = `<div class="guide-groups">${gArr.map(([gid, gr]) => `
+        <div class="group-row">
+          ${gr.isLive ? '<div class="live-dot"></div>' : '<div style="width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0"></div>'}
+          <span class="group-code">${gr.groupCode||'——'}</span>
+          <span class="group-name">${gr.name||'Unnamed Group'}</span>
+          <span class="group-tourists">👥 ${gr.touristCount||0}</span>
+        </div>`).join('')}</div>`;
+    });
+  });
+}
+
+async function loadAllGroupStats(arr) {
+  let totalGroups = 0, totalTourists = 0, liveSessions = 0;
+  const ovList = eid('ov-groups-list');
+  let html = '';
+
+  for (const [uid, g] of arr) {
+    const snap = await get(ref(db, `guides/${uid}/groups`));
+    const groups = snap.val() || {};
+    const gArr = Object.entries(groups);
+    totalGroups += gArr.length;
+    gArr.forEach(([,gr]) => {
+      totalTourists += gr.touristCount||0;
+      if (gr.isLive) liveSessions++;
+      html += `<div class="group-row" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;padding:12px 14px">
+        ${gr.isLive?'<div class="live-dot"></div>':''}
+        <span class="group-code">${gr.groupCode||'——'}</span>
+        <span class="group-name"><strong style="color:var(--muted);font-size:.72rem">${g.name}</strong> · ${gr.name||'Group'}</span>
+        <span class="group-tourists">👥 ${gr.touristCount||0}</span>
+      </div>`;
+    });
+  }
+
+  eid('ov-groups').textContent = totalGroups;
+  eid('ov-tourists').textContent = totalTourists;
+  eid('ov-live').textContent = liveSessions;
+  ovList.innerHTML = html || '<div class="empty">No groups created yet. Guides create groups from their portal.</div>';
+}
+
+window.inviteGuide = async () => {
+  const name = v('inv-name'), email = v('inv-email'), err = eid('inv-err');
+  err.classList.remove('show');
+  if (!name) { showErr(err,'Enter guide name'); return; }
+  if (!email||!email.includes('@')) { showErr(err,'Enter valid email'); return; }
+
+  loading(true);
+  const key = encEmail(email);
+
+  // Check not already invited
+  const existing = await get(ref(db, `invites/${key}`));
+  if (existing.exists()) {
+    loading(false);
+    showErr(err, 'This email is already invited.');
+    return;
+  }
+
+  // Write invite
+  await set(ref(db, `invites/${key}`), {
+    name, email, companyId: cu.uid, companyName: co.name||'', status:'pending', invitedAt: Date.now()
+  });
+
+  // Write to company's guide list (pending)
+  const guideRef = push(ref(db, `companies/${cu.uid}/guides`));
+  await set(guideRef, { name, email, status:'pending', invitedAt: Date.now() });
+
+  loading(false);
+  eid('inv-name').value = '';
+  eid('inv-email').value = '';
+  toast(`✓ ${name} invited — tell them to register at the Guide Portal with ${email}`);
 };
 
-window.showLoading = (v) => { document.getElementById('loading').style.display = v ? 'flex' : 'none'; };
-
-window.toast = (msg) => {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+// ── BRANDING ──
+window.onLogoChange = input => {
+  if (!input.files[0]) return;
+  const r = new FileReader();
+  r.onload = e => {
+    logoB64 = e.target.result;
+    eid('logo-drop-img').src = logoB64; eid('logo-drop-img').style.display='block'; eid('logo-drop-text').style.display='none';
+  };
+  r.readAsDataURL(input.files[0]);
 };
+
+window.updatePreview = () => {
+  const p = v('c-primary'), bg = v('c-bg'), tx = v('c-text');
+  eid('preview-card').style.background = bg;
+  eid('preview-card').style.borderColor = p;
+  eid('preview-name').style.color = tx;
+  eid('preview-logo-ph').style.background = p;
+};
+
+window.saveBranding = async () => {
+  const b = { primary:v('c-primary'), bg:v('c-bg'), text:v('c-text'), accent:v('c-accent'), logo:logoB64||co.branding?.logo||null };
+  loading(true);
+  await set(ref(db, `companies/${cu.uid}/branding`), b);
+  co.branding = b; loading(false); toast('Branding saved ✓');
+};
+
+function loadBrandingUI(b) {
+  if (b.primary) { eid('c-primary').value=b.primary; }
+  if (b.bg) eid('c-bg').value=b.bg;
+  if (b.text) eid('c-text').value=b.text;
+  if (b.accent) eid('c-accent').value=b.accent;
+  if (b.logo) { logoB64=b.logo; eid('logo-drop-img').src=b.logo; eid('logo-drop-img').style.display='block'; eid('logo-drop-text').style.display='none'; }
+  updatePreview();
+}
+
+window.saveSettings = async () => {
+  loading(true);
+  await update(ref(db, `companies/${cu.uid}`), { tourName:v('s-tourname'), website:v('s-website') });
+  loading(false); toast('Settings saved ✓');
+};
+
+// ── HELPERS ──
+window.showScr = id => { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); eid(id).classList.add('active'); };
+window.switchTab = tab => {
+  document.querySelectorAll('.dash-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  document.querySelectorAll('.tab-body').forEach(b=>b.classList.toggle('active',b.id==='tab-'+tab));
+};
+const eid = id => document.getElementById(id);
+const v = id => eid(id).value.trim();
+const loading = on => eid('loading').style.display = on?'flex':'none';
+const showErr = (el,msg) => { el.textContent=msg; el.classList.add('show'); };
+window.toast = msg => { const t=eid('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3200); };
 </script>
 </body>
 </html>
