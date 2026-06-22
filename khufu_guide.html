@@ -303,39 +303,34 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;he
   <button class="continue-btn" onclick="goToRole()">Continue →</button>
 </div>
 
-<!-- SCREEN: Role -->
+<!-- SCREEN: Join (Tourist only) -->
 <div class="screen" id="scr-role">
-  <div class="role-title">𓂀 Who are you?</div>
-  <div class="role-sub" id="role-sub">Select your role to continue</div>
-  <div class="role-cards">
-    <div class="role-card" onclick="startAsGuide()">
-      <div class="role-icon">🏛️</div>
-      <h3>Tour Guide</h3>
-      <p>Host a live session for your group</p>
-    </div>
-    <div class="role-card" id="tourist-card">
-      <div class="role-icon">🎒</div>
-      <h3>Tourist</h3>
-      <p>Join a guide's live tour</p>
-    </div>
-  </div>
+  <div class="role-title">𓂀 Join Your Tour</div>
+  <div class="role-sub">Enter the 6-digit group code from your guide</div>
 
-  <div class="join-code-section" id="join-section" style="display:none">
+  <div class="join-code-section" style="display:block;margin-top:10px">
     <div class="join-tabs">
       <div class="join-tab active" onclick="switchJoinTab('code')">📝 Enter Code</div>
       <div class="join-tab" onclick="switchJoinTab('qr')">📷 Scan QR</div>
     </div>
     <div id="join-tab-code">
       <div class="code-input">
-        <input type="text" id="room-code-input" maxlength="6" placeholder="000000">
-        <button class="join-btn" onclick="joinRoom()">Join</button>
+        <input type="text" id="room-code-input" maxlength="6" placeholder="000000" style="letter-spacing:6px;font-size:1.4rem;text-align:center">
+        <button class="join-btn" onclick="joinRoom()">Join →</button>
       </div>
     </div>
     <div id="join-tab-qr" style="display:none">
       <video id="qr-video" style="width:100%;border-radius:12px;background:#000;aspect-ratio:1" autoplay playsinline></video>
       <p style="color:var(--muted);font-size:.75rem;margin-top:8px;text-align:center">Point camera at QR code</p>
     </div>
-    <button class="back-link" onclick="hideJoinSection()">← Back</button>
+    <button class="back-link" onclick="showScreen('scr-splash')">← Back</button>
+  </div>
+
+  <div style="margin-top:28px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:12px;text-align:left;width:100%;max-width:320px">
+    <p style="color:var(--muted);font-size:.75rem;line-height:1.7">
+      🏛️ <strong style="color:var(--text)">Are you a Tour Guide?</strong><br>
+      Go back to the <a href="index.html" style="color:var(--gold)">home page</a> and open the <strong style="color:var(--text)">Guide Portal</strong> instead.
+    </p>
   </div>
 </div>
 
@@ -603,27 +598,24 @@ window.selectLang = (el) => {
 };
 
 window.goToRole = () => {
+  // Tourist app only — go straight to join screen
+  role = 'tourist';
   showScreen('scr-role');
-  document.getElementById('role-sub').textContent =
-    selectedLang === 'ar' ? 'اختر دورك للمتابعة' : 'Select your role to continue';
+  const sub = document.getElementById('role-sub');
+  const labels = {
+    en: 'Enter the 6-digit group code from your guide',
+    ar: 'أدخل رمز المجموعة المكون من 6 أرقام',
+    fr: 'Entrez le code de groupe à 6 chiffres',
+    de: 'Geben Sie den 6-stelligen Gruppencode ein',
+    es: 'Ingresa el código de grupo de 6 dígitos',
+    ja: '6桁のグループコードを入力してください'
+  };
+  if (sub) sub.textContent = labels[selectedLang] || labels.en;
 };
 
 // ── ROLE ──
-window.startAsGuide = () => {
-  role = 'guide';
-  initApp();
-};
-
-window.showJoinSection = () => {
-  document.getElementById('tourist-card').onclick = null;
-  document.getElementById('join-section').style.display = 'block';
-};
-document.getElementById('tourist-card').onclick = () => showJoinSection();
-
-window.hideJoinSection = () => {
-  document.getElementById('join-section').style.display = 'none';
-  document.getElementById('tourist-card').onclick = () => showJoinSection();
-};
+// Tourist app only — guide role removed from this screen
+// Guides launch from khufu_guide_portal.html
 
 window.switchJoinTab = (tab) => {
   document.querySelectorAll('.join-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='code')||(i===1&&tab==='qr')));
