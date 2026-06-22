@@ -724,15 +724,8 @@ window.joinRoom = async () => {
 
   } catch(e) {
     console.error('joinRoom error:', e.code, e.message);
-    let msg = 'Connection error. Please try again.';
-    if (e.code === 'auth/operation-not-allowed') {
-      msg = 'Anonymous sign-in is not enabled. Please contact support.';
-    } else if (e.code === 'PERMISSION_DENIED' || (e.message && e.message.includes('PERMISSION_DENIED'))) {
-      msg = 'Access denied. Check Firebase rules.';
-    } else if (e.code === 'auth/network-request-failed') {
-      msg = 'No internet connection. Please check your network.';
-    }
-    errEl.textContent = msg;
+    // Show exact error for diagnosis
+    errEl.textContent = 'Error: ' + (e.code || e.message || JSON.stringify(e));
     errEl.style.display = 'block';
     btn.textContent = 'Join →'; btn.disabled = false;
   }
