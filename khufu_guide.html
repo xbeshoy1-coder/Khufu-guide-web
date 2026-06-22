@@ -587,13 +587,19 @@ const langNames = {en:'English',ar:'Arabic',fr:'French',de:'German',es:'Spanish'
 const langFlags = {en:'🇬🇧',ar:'🇸🇦',fr:'🇫🇷',de:'🇩🇪',es:'🇪🇸',ja:'🇯🇵'};
 
 // Auth — expose a promise so tourist flow can wait for auth before joining
-let authReady;
-const authReadyPromise = new Promise(resolve => { authReady = resolve; });
+let authReady, authFail;
+const authReadyPromise = new Promise((resolve, reject) => {
+  authReady = resolve;
+  authFail = reject;
+});
 onAuthStateChanged(auth, u => {
   currentUser = u;
-  if (u) authReady(u); // resolve once we have a user
+  if (u) authReady(u);
 });
-signInAnonymously(auth).catch(console.error);
+signInAnonymously(auth).catch(e => {
+  console.error('Anonymous auth failed:', e.code, e.message);
+  authFail(e); // reject the promise so joinRoom catch gets real error
+});
 
 // Load launch context (set by guide portal)
 // IMPORTANT: context is only valid for 30 minutes to prevent tourist
@@ -717,8 +723,16 @@ window.joinRoom = async () => {
     initApp();
 
   } catch(e) {
-    console.error('joinRoom error:', e);
-    errEl.textContent = 'Connection error. Please check your internet and try again.';
+    console.error('joinRoom error:', e.code, e.message);
+    let msg = 'Connection error. Please try again.';
+    if (e.code === 'auth/operation-not-allowed') {
+      msg = 'Anonymous sign-in is not enabled. Please contact support.';
+    } else if (e.code === 'PERMISSION_DENIED' || (e.message && e.message.includes('PERMISSION_DENIED'))) {
+      msg = 'Access denied. Check Firebase rules.';
+    } else if (e.code === 'auth/network-request-failed') {
+      msg = 'No internet connection. Please check your network.';
+    }
+    errEl.textContent = msg;
     errEl.style.display = 'block';
     btn.textContent = 'Join →'; btn.disabled = false;
   }
