@@ -672,38 +672,56 @@ window.switchJoinTab = (tab) => {
 window.joinRoom = async () => {
   const code = document.getElementById('room-code-input').value.trim();
   const errEl = document.getElementById('join-error');
+  const btn = document.querySelector('.join-btn');
   errEl.style.display = 'none';
+
   if (code.length !== 6) {
     errEl.textContent = 'Please enter a 6-digit code.';
     errEl.style.display = 'block'; return;
   }
-  const snap = await get(ref(db, `rooms/${code}`));
-  if (!snap.exists()) {
-    errEl.textContent = 'Group not found. Check the code and try again.';
-    errEl.style.display = 'block'; return;
-  }
-  const room = snap.val();
-  roomCode = code;
-  role = 'tourist';
-  // Load group schedule + name from guide's data
-  if (room.guideId && room.groupId) {
-    const gSnap = await get(ref(db, `guides/${room.guideId}/groups/${room.groupId}`));
-    if (gSnap.exists()) {
-      const g = gSnap.val();
-      schedule = g.schedule || [];
-      if (g.name) companyCtx.groupName = g.name;
-      if (room.companyId) {
-        const coSnap = await get(ref(db, `companies/${room.companyId}/branding`));
-        if (coSnap.exists()) applyBranding(coSnap.val());
-        const coNameSnap = await get(ref(db, `companies/${room.companyId}/name`));
-        if (coNameSnap.exists()) document.getElementById('app-title').textContent = coNameSnap.val();
+
+  // Show loading state on button
+  btn.textContent = '...';
+  btn.disabled = true;
+
+  try {
+    // MUST await auth before any Firebase read — rules require auth != null
+    await authReadyPromise;
+
+    const snap = await get(ref(db, `rooms/${code}`));
+    if (!snap.exists()) {
+      errEl.textContent = 'Group not found. Check the code and try again.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Join →'; btn.disabled = false;
+      return;
+    }
+
+    const room = snap.val();
+    roomCode = code;
+    role = 'tourist';
+
+    // Load group schedule + branding from guide/company data
+    if (room.guideId && room.groupId) {
+      const gSnap = await get(ref(db, `guides/${room.guideId}/groups/${room.groupId}`));
+      if (gSnap.exists()) {
+        const g = gSnap.val();
+        schedule = g.schedule || [];
+        if (g.name) companyCtx.groupName = g.name;
       }
     }
+    if (room.companyId) {
+      const coSnap = await get(ref(db, `companies/${room.companyId}/branding`));
+      if (coSnap.exists()) applyBranding(coSnap.val());
+    }
+
+    initApp();
+
+  } catch(e) {
+    console.error('joinRoom error:', e);
+    errEl.textContent = 'Connection error. Please check your internet and try again.';
+    errEl.style.display = 'block';
+    btn.textContent = 'Join →'; btn.disabled = false;
   }
-  // Wait for anonymous auth to be ready before joining
-  // This prevents the race condition where currentUser is null
-  await authReadyPromise;
-  initApp();
 };
 
 // ── INIT APP ──
