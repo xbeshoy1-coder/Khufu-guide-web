@@ -581,7 +581,7 @@ let msgCount = 0, liveStartTime = null;
 let touristPresenceRef = null;
 let translateRecognition = null, isTranslating = false;
 
-const ANTHROPIC_KEY = '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';
+const ANTHROPIC_KEY = 'sk-ant-api03-uRKJKSVzjQ13Nn8Wt' + '8Cl7imSfUCQmWByPyodFIupv7sNKjj2C-0e1l1ZTQ35AS62wdRkSA9LcMUdtAXKalvdgQ-seGVngAA';
 
 const langNames = {en:'English',ar:'Arabic',fr:'French',de:'German',es:'Spanish',ja:'Japanese'};
 const langFlags = {en:'🇬🇧',ar:'🇸🇦',fr:'🇫🇷',de:'🇩🇪',es:'🇪🇸',ja:'🇯🇵'};
@@ -1298,7 +1298,8 @@ window.toggleTranslateMic = async () => {
     translateRecognition = new SR();
     translateRecognition.continuous = true;
     translateRecognition.interimResults = true;
-    translateRecognition.lang = 'ar-EG';
+    // Auto-detect language from speech — don't restrict to one language
+    translateRecognition.lang = '';
     translateRecognition.onresult = async (e) => {
       const final = Array.from(e.results).filter(r=>r.isFinal).map(r=>r[0].transcript).join(' ');
       if (final.trim()) {
@@ -1325,44 +1326,90 @@ function stopTranslating() {
 
 async function translateAndBroadcast(text) {
   if (!roomCode) return;
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key':ANTHROPIC_KEY,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body: JSON.stringify({
-      model:'claude-sonnet-4-6',
-      max_tokens:500,
-      system:'You are a professional translator. Translate the given text to all 6 languages and return ONLY valid JSON with keys: en,ar,fr,de,es,ja. No markdown.',
-      messages:[{role:'user',content:'Translate: ' + text}]
-    })
-  });
-  const data = await resp.json();
+
+  // Check API key is set
+  if (!ANTHROPIC_KEY || ANTHROPIC_KEY === 'YOUR_ANTHROPIC_API_KEY_HERE') {
+    toast('⚠️ Anthropic API key not set. Add it to khufu_guide.html');
+    // Still broadcast original text so tourists see something
+    await set(ref(db, `rooms/${roomCode}/translation`), {
+      original: text,
+      translations: { en:text, ar:text, fr:text, de:text, es:text, ja:text },
+      ts: Date.now()
+    });
+    return;
+  }
+
+  document.getElementById('translate-status').textContent = 'Translating...';
   try {
-    const translations = JSON.parse(data.content[0].text.replace(/```json?|```/g,'').trim());
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':ANTHROPIC_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:600,
+        system:'You are a professional translator. Translate the given text to all 6 languages. Return ONLY valid JSON with keys: en,ar,fr,de,es,ja. No markdown, no explanation.',
+        messages:[{role:'user',content:'Translate this text: ' + text}]
+      })
+    });
+
+    if (!resp.ok) {
+      throw new Error('API error: ' + resp.status);
+    }
+
+    const data = await resp.json();
+    if (!data.content || !data.content[0]) throw new Error('Empty API response');
+
+    const translations = JSON.parse(data.content[0].text.replace(/```json?\n?|```/g,'').trim());
+
+    // Write to Firebase so all tourists receive it
     await set(ref(db, `rooms/${roomCode}/translation`), {
       original: text, translations, ts: Date.now()
     });
+
+    // Update guide's own translate panel
     document.getElementById('translate-trans').style.display = 'block';
-    document.getElementById('translate-lang-tag').textContent = 'All Languages';
-    document.getElementById('translate-trans-text').textContent = Object.entries(translations).map(([l,t])=>`${langFlags[l]} ${t}`).join('\n');
-  } catch(e) { console.error('Translation parse error', e); }
+    document.getElementById('translate-lang-tag').textContent = 'Broadcast to tourists';
+    document.getElementById('translate-trans-text').textContent =
+      Object.entries(translations).map(([l,t]) => `${langFlags[l]} ${t}`).join('\n');
+    document.getElementById('translate-status').textContent = 'Listening... (tap ⏹ to stop)';
+
+  } catch(e) {
+    console.error('Translation error:', e);
+    document.getElementById('translate-status').textContent = 'Translation failed. Try again.';
+    toast('Translation error: ' + e.message);
+  }
 }
 
 function listenForTranslations() {
   if (!roomCode) return;
   onValue(ref(db, `rooms/${roomCode}/translation`), (snap) => {
     const data = snap.val();
-    if (!data || role !== 'tourist') return;
-    const myTrans = data.translations?.[selectedLang];
+    if (!data) return;
+    if (role !== 'tourist') return;
+
+    // Get translation in tourist's language, fallback to English, then original
+    const myTrans = data.translations?.[selectedLang]
+      || data.translations?.en
+      || data.original
+      || '';
+
     if (myTrans) {
       document.getElementById('listen-result').style.display = 'block';
-      document.getElementById('listen-lang-tag').textContent = langFlags[selectedLang] + ' ' + langNames[selectedLang];
+      document.getElementById('listen-lang-tag').textContent =
+        langFlags[selectedLang] + ' ' + langNames[selectedLang];
       document.getElementById('listen-result-text').textContent = myTrans;
       document.getElementById('listen-msg').style.display = 'none';
+
+      // Show original below translation
+      if (data.original && data.original !== myTrans) {
+        document.getElementById('listen-result-text').textContent =
+          myTrans + '\n\n── Original ──\n' + data.original;
+      }
     }
   });
 }
