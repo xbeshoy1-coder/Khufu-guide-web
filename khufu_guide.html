@@ -879,22 +879,39 @@ function lockLiveTabs() {
 function joinAsPresence() {
   if (!roomCode) { console.error('joinAsPresence: no roomCode'); return; }
   if (!currentUser) { console.error('joinAsPresence: no currentUser'); return; }
-  unlockLiveTabs();
+
+  // Write tourist presence to Firebase
   touristPresenceRef = ref(db, `rooms/${roomCode}/tourists/${currentUser.uid}`);
   set(touristPresenceRef, {
     lang: selectedLang, flag: langFlags[selectedLang],
     name: `Tourist ${langFlags[selectedLang]}`,
     joinedAt: Date.now(), active: true
-  }).catch(e => console.error('presence write failed:', e));
-  onDisconnect(touristPresenceRef).remove();
-  // Listen for room active state — update banner accordingly
-  onValue(ref(db, `rooms/${roomCode}/active`), snap => {
-    setBannerLive(snap.val() === true);
+  }).then(() => {
+    console.log('Tourist presence written OK');
+  }).catch(e => {
+    console.error('Presence write failed:', e);
+    toast('Could not join room. Check your internet connection.');
   });
+  onDisconnect(touristPresenceRef).remove();
+
+  // Update room code display
   document.getElementById('chat-room-code').textContent = roomCode;
   document.getElementById('live-room-badge').textContent = `#${roomCode}`;
   document.getElementById('live-room-badge').style.display = '';
-  toast('✓ Joined group ' + roomCode);
+
+  // Listen to room active state — unlock tabs only when guide goes live
+  onValue(ref(db, `rooms/${roomCode}/active`), snap => {
+    const isActive = snap.val() === true;
+    setBannerLive(isActive);
+    if (isActive) {
+      unlockLiveTabs();
+      toast('🔴 Guide started the session!');
+    } else {
+      lockLiveTabs();
+    }
+  });
+
+  toast('✓ Joined group ' + roomCode + ' · Waiting for guide to start...');
 }
 
 // ── CHAT ──
@@ -903,8 +920,10 @@ function listenForMessages() {
   const msgsRef = ref(db, `rooms/${roomCode}/messages`);
   onValue(msgsRef, (snap) => {
     const data = snap.val();
-    if (!data) return;
-    const msgs = Object.entries(data).map(([k,v]) => ({...v, id:k})).sort((a,b) => a.ts - b.ts);
+    // Always render — even empty state shows the date separator
+    const msgs = data
+      ? Object.entries(data).map(([k,v]) => ({...v, id:k})).sort((a,b) => a.ts - b.ts)
+      : [];
     renderMessages(msgs);
   });
 }
@@ -912,6 +931,10 @@ function listenForMessages() {
 function renderMessages(msgs) {
   const area = document.getElementById('messages-area');
   const isSent = (m) => m.uid === currentUser?.uid;
+  if (!msgs.length) {
+    area.innerHTML = '<div class="date-sep"><span>Today</span></div><div style="text-align:center;color:var(--muted);font-size:.8rem;margin-top:30px">No messages yet.<br>Say hello! 👋</div>';
+    return;
+  }
   area.innerHTML = '<div class="date-sep"><span>Today</span></div>';
   msgs.forEach(m => {
     const sent = isSent(m);
